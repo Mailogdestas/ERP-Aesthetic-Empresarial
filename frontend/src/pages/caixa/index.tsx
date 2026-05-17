@@ -249,5 +249,4 @@ export default function CaixaPage() {
   );
 }
 
-// @ts-expect-error augment next page
 CaixaPage.requiresAuth = true;

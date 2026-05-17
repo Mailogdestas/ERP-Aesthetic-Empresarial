@@ -24,5 +24,4 @@ export default function HistoricoPage() {
   );
 }
 
-// @ts-expect-error augment next page
 HistoricoPage.requiresAuth = true;

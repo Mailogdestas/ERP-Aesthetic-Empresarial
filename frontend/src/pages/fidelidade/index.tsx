@@ -24,5 +24,4 @@ export default function FidelidadePage() {
   );
 }
 
-// @ts-expect-error augment next page
 FidelidadePage.requiresAuth = true;

@@ -153,5 +153,4 @@ export default function FornecedoresPage() {
   );
 }
 
-// @ts-expect-error augment next page
 FornecedoresPage.requiresAuth = true;

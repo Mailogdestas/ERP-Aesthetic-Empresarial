@@ -13,5 +13,4 @@ export default function MarketingPage() {
   );
 }
 
-// @ts-expect-error augment next page
 MarketingPage.requiresAuth = true;

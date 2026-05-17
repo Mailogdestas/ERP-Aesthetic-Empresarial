@@ -217,5 +217,4 @@ export default function VendasPage() {
   );
 }
 
-// @ts-expect-error augment next page
 VendasPage.requiresAuth = true;

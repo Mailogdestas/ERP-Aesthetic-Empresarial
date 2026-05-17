@@ -25,5 +25,4 @@ export default function PlanosPage() {
   );
 }
 
-// @ts-expect-error augment next page
 PlanosPage.requiresAuth = true;

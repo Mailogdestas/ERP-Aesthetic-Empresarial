@@ -82,5 +82,4 @@ export default function Dashboard() {
   );
 }
 
-// @ts-expect-error augment next page
 Dashboard.requiresAuth = true;

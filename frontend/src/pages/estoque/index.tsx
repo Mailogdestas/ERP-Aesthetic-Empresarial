@@ -24,5 +24,4 @@ export default function EstoquePage() {
   );
 }
 
-// @ts-expect-error augment next page
 EstoquePage.requiresAuth = true;

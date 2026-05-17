@@ -290,5 +290,5 @@ function InsightsPage() {
 }
 
 export default InsightsPage;
-// @ts-expect-error augment next page
+
 InsightsPage.requiresAuth = true;

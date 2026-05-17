@@ -41,5 +41,4 @@ export default function BarbeirosPage() {
   );
 }
 
-// @ts-expect-error augment next page
 BarbeirosPage.requiresAuth = true;

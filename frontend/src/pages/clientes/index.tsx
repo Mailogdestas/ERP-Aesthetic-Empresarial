@@ -40,6 +40,4 @@ export default function ClientesPage() {
     </>
   );
 }
-
-// @ts-expect-error augment next page
 ClientesPage.requiresAuth = true;

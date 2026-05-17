@@ -25,5 +25,4 @@ export default function PacotesPage() {
   );
 }
 
-// @ts-expect-error augment next page
 PacotesPage.requiresAuth = true;
