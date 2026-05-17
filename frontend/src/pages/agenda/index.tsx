@@ -223,6 +223,4 @@ export default function AgendaPage() {
     </>
   );
 }
-
-// @ts-expect-error augment next page
 AgendaPage.requiresAuth = true;
