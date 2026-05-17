@@ -13,9 +13,10 @@ export default function LoginPage() {
   const [lembrar, setLembrar] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
 
-  const handleLogin = async () => {
+const handleLogin = async () => {
+  localStorage.setItem("token", "demo");
   router.push("/dashboard");
-}
+};
 
   return (
     <Box minH="100vh" pos="relative" overflow="hidden" bgGradient="linear(to-br, brand.700, brand.900)">
