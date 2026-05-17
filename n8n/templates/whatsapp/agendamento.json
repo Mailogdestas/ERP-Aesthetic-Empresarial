@@ -1,0 +1,21 @@
+{
+  "name": "WhatsApp Agendamento",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "webhook/whatsapp/agendamento",
+        "methods": ["POST"]
+      },
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook"
+    },
+    {
+      "parameters": {
+        "chatId": "{{$json.clientPhone}}",
+        "text": "Olá! Seu agendamento está marcado para {{$json.inicio}}."
+      },
+      "name": "WhatsApp",
+      "type": "custom.whatsapp"
+    }
+  ]
+}

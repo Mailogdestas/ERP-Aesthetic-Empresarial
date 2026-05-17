@@ -1,0 +1,979 @@
+{
+  "info": {
+    "name": "🔥 Barbearia - APIs Completas",
+    "description": "## 📋 Coleção Completa das APIs do Sistema de Barbearia\n\n### 🎯 **Visão Geral**\nEsta coleção contém todas as APIs do sistema de gerenciamento de barbearias, incluindo:\n- 🏪 **Barbearias** - Gestão completa de estabelecimentos\n- 👥 **Clientes** - Cadastro e gerenciamento com soft delete\n- ✂️ **Serviços** - Catálogo de serviços oferecidos\n- 📂 **Categorias** - Organização dos serviços\n- 👨‍💼 **Usuários** - Sistema de autenticação e autorização\n- 📊 **Relatórios** - KPIs e métricas do negócio\n\n### 🔐 **Autenticação**\nTodas as APIs (exceto login) requerem autenticação via Bearer Token.\n\n### 🚀 **Como Usar**\n1. Execute o **Login** para obter o token\n2. O token será automaticamente configurado nas demais requisições\n3. Teste as APIs seguindo a ordem sugerida\n\n### 📝 **Variáveis de Ambiente**\n- `{{baseUrl}}` - URL base da API (ex: http://localhost:3000)\n- `{{token}}` - Token de autenticação (configurado automaticamente)\n- `{{barbeariaId}}` - ID da barbearia para testes\n- `{{clienteId}}` - ID do cliente para testes\n- `{{servicoId}}` - ID do serviço para testes\n\n### 🎨 **Códigos de Status**\n- ✅ **200/201** - Sucesso\n- ❌ **400** - Dados inválidos\n- 🔒 **401** - Não autorizado\n- 🚫 **403** - Acesso negado\n- 🔍 **404** - Não encontrado\n\n---\n\n**Desenvolvido com ❤️ para facilitar o desenvolvimento e testes**",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_postman_id": "barbearia-apis-v1",
+    "version": {
+      "major": 1,
+      "minor": 0,
+      "patch": 0
+    }
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// 🔧 Script de pré-requisição global",
+          "// Configura automaticamente o token de autenticação",
+          "",
+          "const token = pm.environment.get('token');",
+          "if (token) {",
+          "    pm.request.headers.add({",
+          "        key: 'Authorization',",
+          "        value: `Bearer ${token}`",
+          "    });",
+          "}"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string",
+      "description": "URL base da API"
+    }
+  ],
+  "item": [
+    {
+      "name": "🔐 Autenticação",
+      "description": "Endpoints para autenticação e autorização no sistema",
+      "item": [
+        {
+          "name": "🚀 Login - Obter Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// 🎯 Extrai e salva o token automaticamente",
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.access_token) {",
+                  "        pm.environment.set('token', response.access_token);",
+                  "        console.log('✅ Token salvo automaticamente!');",
+                  "        ",
+                  "        // Salva dados do usuário para uso posterior",
+                  "        if (response.user) {",
+                  "            pm.environment.set('userId', response.user.id);",
+                  "            pm.environment.set('userRole', response.user.role);",
+                  "            pm.environment.set('barbeariaId', response.user.barbeariaId);",
+                  "        }",
+                  "    }",
+                  "} else {",
+                  "    console.log('❌ Falha no login');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@barbearia.com\",\n  \"password\": \"admin123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "### 🔑 **Login no Sistema**\n\n**Credenciais de Teste:**\n- **Admin:** admin@barbearia.com / admin123\n- **Gerente:** gerente@barbearia.com / gerente123\n- **Barbeiro:** barbeiro@barbearia.com / barbeiro123\n\n**Resposta Esperada:**\n```json\n{\n  \"access_token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\",\n  \"user\": {\n    \"id\": \"uuid-do-usuario\",\n    \"nome\": \"Administrador\",\n    \"email\": \"admin@barbearia.com\",\n    \"role\": \"ADMIN\",\n    \"barbeariaId\": \"uuid-da-barbearia\"\n  }\n}\n```\n\n**🎯 Funcionalidades:**\n- ✅ Token salvo automaticamente\n- ✅ Dados do usuário armazenados\n- ✅ Configuração automática para próximas requisições"
+          }
+        }
+      ]
+    },
+    {
+      "name": "🏪 Barbearias",
+      "description": "Gestão completa de barbearias - CRUD com soft delete",
+      "item": [
+        {
+          "name": "➕ Criar Barbearia",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// 💾 Salva ID da barbearia criada para uso posterior",
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.id) {",
+                  "        pm.environment.set('barbeariaId', response.id);",
+                  "        console.log('✅ Barbearia criada! ID salvo:', response.id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Barbearia Elite Style\",\n  \"cnpj\": \"12.345.678/0001-90\",\n  \"endereco\": \"Rua das Flores, 123 - Centro - São Paulo/SP - CEP: 01234-567\",\n  \"telefone\": \"(11) 3333-4444\",\n  \"email\": \"contato@elitestyle.com\",\n  \"horarioFuncionamento\": \"Segunda a Sexta: 08:00 às 18:00 | Sábado: 08:00 às 16:00\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/barbearias",
+              "host": ["{{baseUrl}}"],
+              "path": ["barbearias"]
+            },
+            "description": "### ➕ **Criar Nova Barbearia**\n\n**Permissões:** Apenas ADMIN\n\n**Campos Obrigatórios:**\n- `nome` - Nome da barbearia (2-100 caracteres)\n- `cnpj` - CNPJ válido\n\n**Campos Opcionais:**\n- `endereco` - Endereço completo\n- `telefone` - Telefone de contato\n- `email` - Email de contato\n- `horarioFuncionamento` - Horários de funcionamento\n\n**🎯 Funcionalidades:**\n- ✅ Validação de CNPJ\n- ✅ Campos de auditoria automáticos\n- ✅ ID salvo automaticamente para testes"
+          }
+        },
+        {
+          "name": "📋 Listar Barbearias",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/barbearias?nome=&cnpj=&includeDeleted=false",
+              "host": ["{{baseUrl}}"],
+              "path": ["barbearias"],
+              "query": [
+                {
+                  "key": "nome",
+                  "value": "",
+                  "description": "Filtrar por nome (opcional)"
+                },
+                {
+                  "key": "cnpj",
+                  "value": "",
+                  "description": "Filtrar por CNPJ (opcional)"
+                },
+                {
+                  "key": "includeDeleted",
+                  "value": "false",
+                  "description": "Incluir barbearias excluídas"
+                }
+              ]
+            },
+            "description": "### 📋 **Listar Barbearias**\n\n**Permissões:** ADMIN, GERENTE\n\n**Filtros Disponíveis:**\n- `nome` - Busca parcial por nome\n- `cnpj` - Busca parcial por CNPJ\n- `includeDeleted` - Incluir registros excluídos\n\n**Resposta Inclui:**\n- ✅ Dados básicos da barbearia\n- ✅ Contadores de usuários, barbeiros, clientes\n- ✅ Status de exclusão (deletedAt)"
+          }
+        },
+        {
+          "name": "🔍 Buscar Barbearia por ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/barbearias/{{barbeariaId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["barbearias", "{{barbeariaId}}"]
+            },
+            "description": "### 🔍 **Detalhes da Barbearia**\n\n**Permissões:** ADMIN, GERENTE\n\n**Retorna:**\n- ✅ Dados completos da barbearia\n- ✅ Lista de usuários associados\n- ✅ Lista de barbeiros\n- ✅ Lista de clientes (primeiros 10)\n- ✅ Lista de serviços\n- ✅ Contadores detalhados\n- ✅ Informações de auditoria"
+          }
+        },
+        {
+          "name": "✏️ Atualizar Barbearia",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Barbearia Elite Style - Atualizada\",\n  \"telefone\": \"(11) 3333-5555\",\n  \"email\": \"novo@elitestyle.com\",\n  \"horarioFuncionamento\": \"Segunda a Sábado: 08:00 às 19:00 | Domingo: 09:00 às 15:00\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/barbearias/{{barbeariaId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["barbearias", "{{barbeariaId}}"]
+            },
+            "description": "### ✏️ **Atualizar Barbearia**\n\n**Permissões:** ADMIN, GERENTE\n\n**Campos Editáveis:**\n- `nome` - Nome da barbearia\n- `endereco` - Endereço\n- `telefone` - Telefone\n- `email` - Email\n- `horarioFuncionamento` - Horários\n\n**🔒 Campos Protegidos:**\n- `cnpj` - Não pode ser alterado\n- `id` - Imutável\n- Campos de auditoria (automáticos)"
+          }
+        },
+        {
+          "name": "🗑️ Excluir Barbearia (Soft Delete)",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/barbearias/{{barbeariaId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["barbearias", "{{barbeariaId}}"]
+            },
+            "description": "### 🗑️ **Excluir Barbearia (Soft Delete)**\n\n**Permissões:** Apenas ADMIN\n\n**Comportamento:**\n- ✅ Marca como excluída (deletedAt)\n- ✅ Não remove fisicamente do banco\n- ✅ Pode ser restaurada posteriormente\n- ✅ Retorna status 204 (No Content)\n\n**⚠️ Importante:**\n- Apenas administradores podem excluir\n- Operação reversível via restore"
+          }
+        },
+        {
+          "name": "♻️ Restaurar Barbearia",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{baseUrl}}/barbearias/{{barbeariaId}}/restore",
+              "host": ["{{baseUrl}}"],
+              "path": ["barbearias", "{{barbeariaId}}", "restore"]
+            },
+            "description": "### ♻️ **Restaurar Barbearia**\n\n**Permissões:** Apenas ADMIN\n\n**Funcionalidade:**\n- ✅ Remove o soft delete (deletedAt = null)\n- ✅ Barbearia volta a aparecer nas listagens\n- ✅ Retorna dados atualizados\n- ✅ Atualiza campos de auditoria"
+          }
+        }
+      ]
+    },
+    {
+      "name": "👥 Clientes",
+      "description": "Gestão de clientes com soft delete (inativação)",
+      "item": [
+        {
+          "name": "➕ Criar Cliente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// 💾 Salva ID do cliente criado",
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.id) {",
+                  "        pm.environment.set('clienteId', response.id);",
+                  "        console.log('✅ Cliente criado! ID salvo:', response.id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"João Silva Santos\",\n  \"telefone\": \"(11) 99999-1111\",\n  \"email\": \"joao.silva@email.com\",\n  \"endereco\": \"Rua das Palmeiras, 456 - Vila Nova - São Paulo/SP\",\n  \"dataNascimento\": \"1985-03-15\",\n  \"observacoes\": \"Cliente preferencial. Gosta de cortes modernos e sempre pontual.\",\n  \"barbeariaId\": \"{{barbeariaId}}\",\n  \"createdByUsuarioId\": \"{{userId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/clientes",
+              "host": ["{{baseUrl}}"],
+              "path": ["clientes"]
+            },
+            "description": "### ➕ **Cadastrar Novo Cliente**\n\n**Permissões:** ADMIN, GERENTE, ATENDENTE\n\n**Campos Obrigatórios:**\n- `nome` - Nome completo (2-100 caracteres)\n- `barbeariaId` - ID da barbearia\n- `createdByUsuarioId` - ID do usuário criador\n\n**Campos Opcionais:**\n- `telefone` - Telefone de contato\n- `email` - Email do cliente\n- `endereco` - Endereço completo\n- `dataNascimento` - Data de nascimento\n- `observacoes` - Observações especiais\n\n**🎯 Funcionalidades:**\n- ✅ Validação de email\n- ✅ Campos de auditoria automáticos\n- ✅ Relacionamento com barbearia"
+          }
+        },
+        {
+          "name": "📋 Listar Clientes por Barbearia",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/clientes/barbearia/{{barbeariaId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["clientes", "barbearia", "{{barbeariaId}}"]
+            },
+            "description": "### 📋 **Clientes da Barbearia**\n\n**Permissões:** ADMIN, GERENTE, BARBEIRO, ATENDENTE\n\n**Retorna:**\n- ✅ Apenas clientes ativos (não excluídos)\n- ✅ Dados da barbearia associada\n- ✅ Contadores de agendamentos, vendas, fidelidade\n- ✅ Ordenação alfabética por nome\n\n**Informações Incluídas:**\n- Dados pessoais do cliente\n- Estatísticas de relacionamento\n- Data de cadastro"
+          }
+        },
+        {
+          "name": "🔍 Buscar Clientes com Filtros",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/clientes?barbeariaId={{barbeariaId}}&nome=&telefone=&email=&includeDeleted=false",
+              "host": ["{{baseUrl}}"],
+              "path": ["clientes"],
+              "query": [
+                {
+                  "key": "barbeariaId",
+                  "value": "{{barbeariaId}}",
+                  "description": "ID da barbearia"
+                },
+                {
+                  "key": "nome",
+                  "value": "",
+                  "description": "Busca parcial por nome"
+                },
+                {
+                  "key": "telefone",
+                  "value": "",
+                  "description": "Busca parcial por telefone"
+                },
+                {
+                  "key": "email",
+                  "value": "",
+                  "description": "Busca parcial por email"
+                },
+                {
+                  "key": "includeDeleted",
+                  "value": "false",
+                  "description": "Incluir clientes inativos"
+                }
+              ]
+            },
+            "description": "### 🔍 **Busca Avançada de Clientes**\n\n**Filtros Disponíveis:**\n- `barbeariaId` - Filtrar por barbearia\n- `nome` - Busca parcial (case-insensitive)\n- `telefone` - Busca parcial por telefone\n- `email` - Busca parcial por email\n- `includeDeleted` - Incluir clientes inativos\n\n**🎯 Casos de Uso:**\n- Buscar cliente por nome\n- Localizar por telefone\n- Verificar email duplicado\n- Listar clientes inativos"
+          }
+        },
+        {
+          "name": "👤 Detalhes do Cliente",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/clientes/{{clienteId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["clientes", "{{clienteId}}"]
+            },
+            "description": "### 👤 **Perfil Completo do Cliente**\n\n**Retorna:**\n- ✅ Dados pessoais completos\n- ✅ Histórico de agendamentos (últimos 10)\n- ✅ Histórico de vendas (últimos 10)\n- ✅ Pontos de fidelidade\n- ✅ Informações de auditoria\n- ✅ Estatísticas de relacionamento\n\n**Informações Detalhadas:**\n- Serviços mais utilizados\n- Barbeiros preferidos\n- Valor total gasto\n- Frequência de visitas"
+          }
+        },
+        {
+          "name": "✏️ Atualizar Cliente",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"João Silva Santos Jr.\",\n  \"telefone\": \"(11) 99999-2222\",\n  \"email\": \"joao.santos@newemail.com\",\n  \"endereco\": \"Rua das Palmeiras, 456 - Apto 101 - Vila Nova - São Paulo/SP\",\n  \"observacoes\": \"Cliente VIP. Prefere agendamentos pela manhã. Alérgico a produtos com fragrância forte.\",\n  \"updatedByUsuarioId\": \"{{userId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/clientes/{{clienteId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["clientes", "{{clienteId}}"]
+            },
+            "description": "### ✏️ **Atualizar Dados do Cliente**\n\n**Permissões:** ADMIN, GERENTE, ATENDENTE\n\n**Campos Editáveis:**\n- `nome` - Nome completo\n- `telefone` - Telefone de contato\n- `email` - Email\n- `endereco` - Endereço\n- `dataNascimento` - Data de nascimento\n- `observacoes` - Observações\n\n**🔒 Campos Protegidos:**\n- `barbeariaId` - Não pode ser alterado\n- Campos de auditoria (automáticos)"
+          }
+        },
+        {
+          "name": "🚫 Inativar Cliente (Soft Delete)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"deletedByUsuarioId\": \"{{userId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/clientes/{{clienteId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["clientes", "{{clienteId}}"]
+            },
+            "description": "### 🚫 **Inativar Cliente (Soft Delete)**\n\n**Permissões:** ADMIN, GERENTE\n\n**Comportamento:**\n- ✅ Marca cliente como inativo (deletedAt)\n- ✅ Preserva histórico de agendamentos\n- ✅ Mantém dados para relatórios\n- ✅ Pode ser reativado posteriormente\n- ✅ Retorna status 204 (No Content)\n\n**⚠️ Importante:**\n- Cliente não aparece em buscas normais\n- Histórico permanece intacto\n- Operação reversível"
+          }
+        },
+        {
+          "name": "♻️ Reativar Cliente",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"restoredByUsuarioId\": \"{{userId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/clientes/{{clienteId}}/restore",
+              "host": ["{{baseUrl}}"],
+              "path": ["clientes", "{{clienteId}}", "restore"]
+            },
+            "description": "### ♻️ **Reativar Cliente**\n\n**Permissões:** ADMIN, GERENTE\n\n**Funcionalidade:**\n- ✅ Remove inativação (deletedAt = null)\n- ✅ Cliente volta às listagens normais\n- ✅ Histórico preservado\n- ✅ Pode fazer novos agendamentos\n- ✅ Atualiza auditoria"
+          }
+        },
+        {
+          "name": "🏆 Clientes Mais Frequentes",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/clientes/mais-frequentes/{{barbeariaId}}?limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["clientes", "mais-frequentes", "{{barbeariaId}}"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Número máximo de resultados"
+                }
+              ]
+            },
+            "description": "### 🏆 **Clientes Mais Frequentes**\n\n**Critério:** Baseado nos últimos 90 dias\n\n**Retorna:**\n- ✅ Clientes ordenados por frequência\n- ✅ Contadores de agendamentos e vendas\n- ✅ Dados para programa de fidelidade\n\n**🎯 Uso:**\n- Identificar clientes VIP\n- Campanhas de fidelização\n- Análise de comportamento"
+          }
+        },
+        {
+          "name": "🎂 Aniversariantes do Mês",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/clientes/aniversariantes/{{barbeariaId}}/{{$randomInt}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["clientes", "aniversariantes", "{{barbeariaId}}", "{{$randomInt}}"]
+            },
+            "description": "### 🎂 **Aniversariantes do Mês**\n\n**Parâmetros:**\n- `barbeariaId` - ID da barbearia\n- `month` - Mês (1-12)\n\n**Retorna:**\n- ✅ Clientes que fazem aniversário no mês\n- ✅ Ordenados por data de nascimento\n- ✅ Apenas clientes ativos\n\n**🎯 Uso:**\n- Campanhas de aniversário\n- Promoções especiais\n- Marketing de relacionamento\n\n**Exemplo:** `/clientes/aniversariantes/uuid-barbearia/3` (março)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "✂️ Serviços",
+      "description": "Catálogo de serviços com preços e categorias",
+      "item": [
+        {
+          "name": "➕ Criar Serviço",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// 💾 Salva ID do serviço criado",
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.id) {",
+                  "        pm.environment.set('servicoId', response.id);",
+                  "        console.log('✅ Serviço criado! ID salvo:', response.id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Corte Masculino Tradicional\",\n  \"descricao\": \"Corte masculino tradicional com acabamento na navalha, lavagem e finalização com produtos premium\",\n  \"preco\": 35.00,\n  \"duracaoMin\": 30,\n  \"ativo\": true,\n  \"categoriaId\": \"{{categoriaId}}\",\n  \"barbeariaId\": \"{{barbeariaId}}\",\n  \"createdByUsuarioId\": \"{{userId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/servicos",
+              "host": ["{{baseUrl}}"],
+              "path": ["servicos"]
+            },
+            "description": "### ➕ **Cadastrar Novo Serviço**\n\n**Permissões:** ADMIN, GERENTE\n\n**Campos Obrigatórios:**\n- `nome` - Nome do serviço (2-100 caracteres)\n- `preco` - Preço em reais (0.01 - 9999.99)\n- `duracaoMin` - Duração em minutos (5-480)\n- `categoriaId` - ID da categoria\n- `barbeariaId` - ID da barbearia\n- `createdByUsuarioId` - ID do usuário criador\n\n**Campos Opcionais:**\n- `descricao` - Descrição detalhada (até 500 caracteres)\n- `ativo` - Status ativo (padrão: true)\n\n**🎯 Funcionalidades:**\n- ✅ Validação de preço e duração\n- ✅ Relacionamento com categoria\n- ✅ Status ativo/inativo"
+          }
+        },
+        {
+          "name": "📋 Listar Serviços por Barbearia",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/servicos/barbearia/{{barbeariaId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["servicos", "barbearia", "{{barbeariaId}}"]
+            },
+            "description": "### 📋 **Serviços da Barbearia**\n\n**Permissões:** ADMIN, GERENTE, BARBEIRO, ATENDENTE\n\n**Retorna:**\n- ✅ Apenas serviços ativos (não excluídos)\n- ✅ Dados da categoria associada\n- ✅ Informações da barbearia\n- ✅ Contadores de agendamentos e vendas\n- ✅ Ordenação por categoria e nome\n\n**Informações Incluídas:**\n- Preço e duração\n- Status ativo/inativo\n- Estatísticas de uso"
+          }
+        },
+        {
+          "name": "🔍 Buscar Serviços com Filtros",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/servicos?barbeariaId={{barbeariaId}}&categoriaId=&nome=&precoMin=&precoMax=&ativo=true&includeDeleted=false",
+              "host": ["{{baseUrl}}"],
+              "path": ["servicos"],
+              "query": [
+                {
+                  "key": "barbeariaId",
+                  "value": "{{barbeariaId}}",
+                  "description": "ID da barbearia"
+                },
+                {
+                  "key": "categoriaId",
+                  "value": "",
+                  "description": "Filtrar por categoria"
+                },
+                {
+                  "key": "nome",
+                  "value": "",
+                  "description": "Busca parcial por nome"
+                },
+                {
+                  "key": "precoMin",
+                  "value": "",
+                  "description": "Preço mínimo"
+                },
+                {
+                  "key": "precoMax",
+                  "value": "",
+                  "description": "Preço máximo"
+                },
+                {
+                  "key": "ativo",
+                  "value": "true",
+                  "description": "Filtrar por status ativo"
+                },
+                {
+                  "key": "includeDeleted",
+                  "value": "false",
+                  "description": "Incluir serviços excluídos"
+                }
+              ]
+            },
+            "description": "### 🔍 **Busca Avançada de Serviços**\n\n**Filtros Disponíveis:**\n- `barbeariaId` - Filtrar por barbearia\n- `categoriaId` - Filtrar por categoria\n- `nome` - Busca parcial (case-insensitive)\n- `precoMin` / `precoMax` - Faixa de preço\n- `ativo` - Status ativo/inativo\n- `includeDeleted` - Incluir excluídos\n\n**🎯 Casos de Uso:**\n- Buscar serviços por categoria\n- Filtrar por faixa de preço\n- Localizar serviços inativos\n- Pesquisa por nome"
+          }
+        },
+        {
+          "name": "🏆 Serviços Mais Populares",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/servicos/populares/{{barbeariaId}}?limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["servicos", "populares", "{{barbeariaId}}"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Número máximo de resultados"
+                }
+              ]
+            },
+            "description": "### 🏆 **Serviços Mais Populares**\n\n**Critério:** Baseado nos últimos 30 dias\n\n**Retorna:**\n- ✅ Serviços ordenados por número de agendamentos\n- ✅ Apenas serviços ativos\n- ✅ Contadores de agendamentos e vendas\n- ✅ Dados da categoria\n\n**🎯 Uso:**\n- Análise de demanda\n- Planejamento de estoque\n- Estratégias de preço\n- Promoções direcionadas"
+          }
+        },
+        {
+          "name": "🔍 Detalhes do Serviço",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/servicos/{{servicoId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["servicos", "{{servicoId}}"]
+            },
+            "description": "### 🔍 **Detalhes Completos do Serviço**\n\n**Retorna:**\n- ✅ Dados completos do serviço\n- ✅ Informações da categoria e barbearia\n- ✅ Histórico de agendamentos (últimos 10)\n- ✅ Histórico de vendas (últimos 10)\n- ✅ Informações de auditoria\n- ✅ Estatísticas de uso\n\n**Informações Detalhadas:**\n- Clientes que mais utilizam\n- Barbeiros que mais executam\n- Frequência de agendamentos\n- Receita gerada"
+          }
+        },
+        {
+          "name": "✏️ Atualizar Serviço",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Corte Masculino Premium\",\n  \"descricao\": \"Corte masculino premium com acabamento na navalha, lavagem, massagem relaxante e finalização com produtos importados\",\n  \"preco\": 45.00,\n  \"duracaoMin\": 45,\n  \"updatedByUsuarioId\": \"{{userId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/servicos/{{servicoId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["servicos", "{{servicoId}}"]
+            },
+            "description": "### ✏️ **Atualizar Serviço**\n\n**Permissões:** ADMIN, GERENTE\n\n**Campos Editáveis:**\n- `nome` - Nome do serviço\n- `descricao` - Descrição\n- `preco` - Preço\n- `duracaoMin` - Duração\n- `ativo` - Status ativo\n- `categoriaId` - Categoria\n\n**🔒 Campos Protegidos:**\n- `barbeariaId` - Não pode ser alterado\n- Campos de auditoria (automáticos)"
+          }
+        },
+        {
+          "name": "🔄 Ativar/Desativar Serviço",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"updatedByUsuarioId\": \"{{userId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/servicos/{{servicoId}}/toggle-active",
+              "host": ["{{baseUrl}}"],
+              "path": ["servicos", "{{servicoId}}", "toggle-active"]
+            },
+            "description": "### 🔄 **Ativar/Desativar Serviço**\n\n**Permissões:** ADMIN, GERENTE\n\n**Funcionalidade:**\n- ✅ Alterna status ativo/inativo\n- ✅ Serviços inativos não aparecem para agendamento\n- ✅ Preserva histórico existente\n- ✅ Operação reversível\n\n**🎯 Uso:**\n- Suspender temporariamente um serviço\n- Manutenção sazonal do catálogo\n- Controle de disponibilidade"
+          }
+        },
+        {
+          "name": "🗑️ Excluir Serviço (Soft Delete)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"deletedByUsuarioId\": \"{{userId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/servicos/{{servicoId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["servicos", "{{servicoId}}"]
+            },
+            "description": "### 🗑️ **Excluir Serviço (Soft Delete)**\n\n**Permissões:** ADMIN, GERENTE\n\n**Comportamento:**\n- ✅ Marca como excluído (deletedAt)\n- ✅ Preserva histórico de agendamentos\n- ✅ Mantém dados para relatórios\n- ✅ Pode ser restaurado\n- ✅ Retorna status 204 (No Content)\n\n**⚠️ Importante:**\n- Não aparece em listagens normais\n- Histórico permanece intacto\n- Operação reversível"
+          }
+        },
+        {
+          "name": "♻️ Restaurar Serviço",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"restoredByUsuarioId\": \"{{userId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/servicos/{{servicoId}}/restore",
+              "host": ["{{baseUrl}}"],
+              "path": ["servicos", "{{servicoId}}", "restore"]
+            },
+            "description": "### ♻️ **Restaurar Serviço**\n\n**Permissões:** ADMIN, GERENTE\n\n**Funcionalidade:**\n- ✅ Remove exclusão (deletedAt = null)\n- ✅ Serviço volta às listagens\n- ✅ Disponível para agendamento\n- ✅ Histórico preservado\n- ✅ Atualiza auditoria"
+          }
+        }
+      ]
+    },
+    {
+      "name": "📂 Categorias de Serviços",
+      "description": "Organização e classificação dos serviços",
+      "item": [
+        {
+          "name": "➕ Criar Categoria",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// 💾 Salva ID da categoria criada",
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    if (response.id) {",
+                  "        pm.environment.set('categoriaId', response.id);",
+                  "        console.log('✅ Categoria criada! ID salvo:', response.id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Cortes de Cabelo\",\n  \"descricao\": \"Serviços relacionados a cortes de cabelo masculino e feminino, incluindo cortes tradicionais, modernos e especiais\",\n  \"barbeariaId\": \"{{barbeariaId}}\",\n  \"createdByUsuarioId\": \"{{userId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/categorias-servicos",
+              "host": ["{{baseUrl}}"],
+              "path": ["categorias-servicos"]
+            },
+            "description": "### ➕ **Criar Nova Categoria**\n\n**Permissões:** ADMIN, GERENTE\n\n**Campos Obrigatórios:**\n- `nome` - Nome da categoria (2-100 caracteres)\n- `barbeariaId` - ID da barbearia\n- `createdByUsuarioId` - ID do usuário criador\n\n**Campos Opcionais:**\n- `descricao` - Descrição da categoria (até 500 caracteres)\n\n**🎯 Funcionalidades:**\n- ✅ Organização do catálogo de serviços\n- ✅ Facilita busca e filtros\n- ✅ Melhora experiência do usuário\n\n**Exemplos de Categorias:**\n- Cortes de Cabelo\n- Barba e Bigode\n- Tratamentos Capilares\n- Produtos e Cosméticos"
+          }
+        },
+        {
+          "name": "📋 Listar Categorias por Barbearia",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/categorias-servicos/barbearia/{{barbeariaId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["categorias-servicos", "barbearia", "{{barbeariaId}}"]
+            },
+            "description": "### 📋 **Categorias da Barbearia**\n\n**Permissões:** ADMIN, GERENTE, BARBEIRO, ATENDENTE\n\n**Retorna:**\n- ✅ Apenas categorias ativas (não excluídas)\n- ✅ Dados da barbearia associada\n- ✅ Contador de serviços por categoria\n- ✅ Ordenação alfabética por nome\n\n**Informações Incluídas:**\n- Nome e descrição\n- Quantidade de serviços\n- Data de criação"
+          }
+        },
+        {
+          "name": "🔍 Buscar Categorias com Filtros",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/categorias-servicos?barbeariaId={{barbeariaId}}&nome=&includeDeleted=false",
+              "host": ["{{baseUrl}}"],
+              "path": ["categorias-servicos"],
+              "query": [
+                {
+                  "key": "barbeariaId",
+                  "value": "{{barbeariaId}}",
+                  "description": "ID da barbearia"
+                },
+                {
+                  "key": "nome",
+                  "value": "",
+                  "description": "Busca parcial por nome"
+                },
+                {
+                  "key": "includeDeleted",
+                  "value": "false",
+                  "description": "Incluir categorias excluídas"
+                }
+              ]
+            },
+            "description": "### 🔍 **Busca de Categorias**\n\n**Filtros Disponíveis:**\n- `barbeariaId` - Filtrar por barbearia\n- `nome` - Busca parcial (case-insensitive)\n- `includeDeleted` - Incluir excluídas\n\n**🎯 Casos de Uso:**\n- Buscar categoria específica\n- Listar categorias inativas\n- Verificar duplicatas"
+          }
+        },
+        {
+          "name": "🏆 Categorias Mais Utilizadas",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/categorias-servicos/mais-usadas/{{barbeariaId}}?limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["categorias-servicos", "mais-usadas", "{{barbeariaId}}"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Número máximo de resultados"
+                }
+              ]
+            },
+            "description": "### 🏆 **Categorias Mais Utilizadas**\n\n**Critério:** Baseado no número de serviços ativos\n\n**Retorna:**\n- ✅ Categorias ordenadas por uso\n- ✅ Contador de serviços ativos\n- ✅ Apenas categorias ativas\n\n**🎯 Uso:**\n- Análise de portfólio\n- Organização do menu\n- Estratégias de marketing"
+          }
+        },
+        {
+          "name": "🔍 Detalhes da Categoria",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/categorias-servicos/{{categoriaId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["categorias-servicos", "{{categoriaId}}"]
+            },
+            "description": "### 🔍 **Detalhes da Categoria**\n\n**Retorna:**\n- ✅ Dados completos da categoria\n- ✅ Lista de serviços associados\n- ✅ Estatísticas de cada serviço\n- ✅ Informações de auditoria\n- ✅ Dados da barbearia\n\n**Informações Detalhadas:**\n- Serviços mais populares da categoria\n- Receita gerada pela categoria\n- Frequência de uso"
+          }
+        },
+        {
+          "name": "✏️ Atualizar Categoria",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Cortes e Penteados\",\n  \"descricao\": \"Serviços completos de cortes de cabelo, penteados e styling para todas as ocasiões, incluindo cortes tradicionais, modernos e especiais para eventos\",\n  \"updatedByUsuarioId\": \"{{userId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/categorias-servicos/{{categoriaId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["categorias-servicos", "{{categoriaId}}"]
+            },
+            "description": "### ✏️ **Atualizar Categoria**\n\n**Permissões:** ADMIN, GERENTE\n\n**Campos Editáveis:**\n- `nome` - Nome da categoria\n- `descricao` - Descrição\n\n**🔒 Campos Protegidos:**\n- `barbeariaId` - Não pode ser alterado\n- Campos de auditoria (automáticos)"
+          }
+        },
+        {
+          "name": "🗑️ Excluir Categoria (Soft Delete)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"deletedByUsuarioId\": \"{{userId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/categorias-servicos/{{categoriaId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["categorias-servicos", "{{categoriaId}}"]
+            },
+            "description": "### 🗑️ **Excluir Categoria (Soft Delete)**\n\n**Permissões:** ADMIN, GERENTE\n\n**Restrições:**\n- ❌ Não pode excluir categoria com serviços ativos\n- ✅ Deve mover/excluir serviços primeiro\n\n**Comportamento:**\n- ✅ Marca como excluída (deletedAt)\n- ✅ Pode ser restaurada\n- ✅ Retorna status 204 (No Content)\n\n**⚠️ Importante:**\n- Validação de integridade\n- Operação reversível"
+          }
+        },
+        {
+          "name": "♻️ Restaurar Categoria",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"restoredByUsuarioId\": \"{{userId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/categorias-servicos/{{categoriaId}}/restore",
+              "host": ["{{baseUrl}}"],
+              "path": ["categorias-servicos", "{{categoriaId}}", "restore"]
+            },
+            "description": "### ♻️ **Restaurar Categoria**\n\n**Permissões:** ADMIN, GERENTE\n\n**Funcionalidade:**\n- ✅ Remove exclusão (deletedAt = null)\n- ✅ Categoria volta às listagens\n- ✅ Serviços associados ficam disponíveis\n- ✅ Atualiza auditoria"
+          }
+        }
+      ]
+    },
+    {
+      "name": "📊 Relatórios e KPIs",
+      "description": "Métricas e indicadores de performance",
+      "item": [
+        {
+          "name": "📈 Dashboard Geral",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/kpi/dashboard/{{barbeariaId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["kpi", "dashboard", "{{barbeariaId}}"]
+            },
+            "description": "### 📈 **Dashboard Executivo**\n\n**Métricas Incluídas:**\n- 💰 Receita total e do período\n- 📅 Agendamentos realizados\n- 👥 Clientes ativos\n- ✂️ Serviços mais vendidos\n- 📊 Comparativo com período anterior\n\n**🎯 Uso:**\n- Visão geral do negócio\n- Tomada de decisões\n- Acompanhamento de metas"
+          }
+        },
+        {
+          "name": "💰 Relatório Financeiro",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/kpi/financeiro/{{barbeariaId}}?dataInicio=2024-01-01&dataFim=2024-12-31",
+              "host": ["{{baseUrl}}"],
+              "path": ["kpi", "financeiro", "{{barbeariaId}}"],
+              "query": [
+                {
+                  "key": "dataInicio",
+                  "value": "2024-01-01",
+                  "description": "Data inicial (YYYY-MM-DD)"
+                },
+                {
+                  "key": "dataFim",
+                  "value": "2024-12-31",
+                  "description": "Data final (YYYY-MM-DD)"
+                }
+              ]
+            },
+            "description": "### 💰 **Relatório Financeiro Detalhado**\n\n**Informações:**\n- 📊 Receita por período\n- 💳 Métodos de pagamento\n- 🏆 Serviços mais lucrativos\n- 👨‍💼 Performance por barbeiro\n- 📈 Tendências de crescimento\n\n**Filtros:**\n- Período customizável\n- Comparativo mensal/anual"
+          }
+        }
+      ]
+    }
+  ]
+}

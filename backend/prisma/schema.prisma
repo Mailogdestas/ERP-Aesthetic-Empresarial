@@ -1,0 +1,1593 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// 🎭 Enums - Definições de tipos enumerados para padronizar valores
+
+/// 👥 Enum Role - Define os papéis/funções dos usuários no sistema
+/// Hierarquia: SUPER_ADMIN > ADMIN > MANAGER > BARBER > USER
+enum Role {
+  SUPER_ADMIN /// Administrador do sistema (acesso total)
+  ADMIN /// Administrador da barbearia (acesso completo à barbearia)
+  MANAGER /// Gerente (acesso a relatórios e configurações)
+  BARBER /// Barbeiro (acesso a agendamentos e vendas)
+  USER /// Usuário comum/cliente (acesso limitado)
+}
+
+enum AgendamentoStatus {
+  PENDENTE
+  CONFIRMADO
+  EM_ANDAMENTO
+  CANCELADO
+  CONCLUIDO
+  NO_SHOW
+}
+
+
+enum TipoRecorrencia {
+  SEMANAL
+  QUINZENAL
+  MENSAL
+}
+
+
+/// 💰 Enum VendaStatus - Status das vendas
+enum VendaStatus {
+  ABERTA /// Venda em andamento, itens sendo adicionados
+  FINALIZADA /// Venda concluída, aguardando pagamento
+  PAGA /// Venda totalmente paga
+  CANCELADA /// Venda cancelada
+}
+
+/// 💳 Enum MetodoPagamento - Métodos de pagamento aceitos
+enum MetodoPagamento {
+  DINHEIRO /// Pagamento em espécie
+  CARTAO /// Cartão de crédito/débito
+  PIX /// Pagamento via PIX
+  TRANSFERENCIA /// Transferência bancária
+}
+
+/// 💳 Enum TipoPagamento - Tipos de pagamento para simulação
+enum TipoPagamento {
+  DINHEIRO /// Pagamento em dinheiro
+  PIX /// Pagamento via PIX
+  DEBITO /// Cartão de débito
+  CREDITO /// Cartão de crédito (parcelado)
+}
+
+/// 🎯 Enum TipoPagamentoSimples - Classificação simples do pagamento
+enum TipoPagamentoSimples {
+  AVISTA /// Pagamento à vista (sem juros)
+  PARCELADO /// Pagamento parcelado (com juros)
+}
+
+/// 📊 Enum StatusPagamento - Status dos pagamentos
+enum StatusPagamento {
+  PENDENTE /// Pagamento pendente
+  PARCIAL /// Pagamento parcial
+  CONCLUIDO /// Pagamento concluído
+  CANCELADO /// Pagamento cancelado
+}
+
+/// 📋 Enum StatusParcela - Status das parcelas
+enum StatusParcela {
+  PENDENTE /// Parcela pendente
+  PAGA /// Parcela paga
+  ATRASADA /// Parcela atrasada
+  CANCELADA /// Parcela cancelada
+}
+
+/// 🔄 Enum PagamentoStatus - Status dos pagamentos
+enum PagamentoStatus {
+  PENDENTE /// Pagamento aguardando processamento
+  PROCESSANDO /// Pagamento sendo processado
+  APROVADO /// Pagamento aprovado e confirmado
+  REJEITADO /// Pagamento rejeitado
+  ESTORNADO /// Pagamento estornado/reembolsado
+}
+
+/// 💼 Enum CaixaSessaoStatus - Status das sessões de caixa
+enum CaixaSessaoStatus {
+  ABERTA /// Sessão de caixa aberta e operacional
+  FECHADA /// Sessão de caixa fechada
+  CONFERIDA /// Sessão conferida e validada
+}
+
+/// 📢 Enum NotificacaoStatus - Status das notificações
+enum NotificacaoStatus {
+  ENVIADO /// Notificação enviada com sucesso
+  ERRO /// Erro no envio da notificação
+  PENDENTE /// Notificação aguardando envio
+}
+
+/// 🔗 Enum LogIntegracaoStatus - Status dos logs de integração
+enum LogIntegracaoStatus {
+  SUCESSO /// Integração executada com sucesso
+  ERRO /// Erro na execução da integração
+  TIMEOUT /// Timeout na execução da integração
+}
+
+/// 💸 Enum LancamentoTipo - Tipos de lançamentos no caixa
+enum LancamentoTipo {
+  ENTRADA /// Entrada de dinheiro (vendas, recebimentos)
+  SAIDA /// Saída de dinheiro (despesas, saques)
+  AJUSTE /// Ajuste manual no caixa
+}
+
+/// 🏦 Enum ModoCaixa - Modos de operação do caixa
+enum ModoCaixa {
+  UNICO_DIARIO /// Um caixa único por barbearia
+  POR_BARBEIRO /// Um caixa por barbeiro
+  POR_OPERADOR /// Um caixa por operador logado
+}
+
+/// 💸 Enum TipoMovimento - Tipos de movimentação no caixa
+enum TipoMovimento {
+  ENTRADA /// Entrada de dinheiro
+  SAIDA /// Saída de dinheiro
+  AJUSTE /// Ajuste manual
+}
+
+/// 📋 Enum AssinaturaStatus - Status das assinaturas SaaS
+enum AssinaturaStatus {
+  ATIVA /// Assinatura ativa e em dia
+  SUSPENSA /// Assinatura suspensa por falta de pagamento
+  CANCELADA /// Assinatura cancelada pelo cliente
+  EXPIRADA /// Assinatura expirada
+}
+
+/// 🧾 Enum FaturaStatus - Status das faturas
+enum FaturaStatus {
+  PENDENTE /// Fatura gerada, aguardando pagamento
+  PAGA /// Fatura paga
+  VENCIDA /// Fatura vencida
+  CANCELADA /// Fatura cancelada
+}
+
+/// ⭐ Enum AvaliacaoCliente - Avaliação do cliente sobre o atendimento
+enum AvaliacaoCliente {
+  MUITO_RUIM /// Avaliação 1 estrela
+  RUIM /// Avaliação 2 estrelas
+  REGULAR /// Avaliação 3 estrelas
+  BOM /// Avaliação 4 estrelas
+  EXCELENTE /// Avaliação 5 estrelas
+}
+
+/// 📦 Enum EstoqueMovimentoTipo - Tipos de movimentação de estoque
+enum EstoqueMovimentoTipo {
+  ENTRADA /// Entrada de produtos (compra, devolução)
+  SAIDA /// Saída de produtos (venda, perda)
+  AJUSTE /// Ajuste manual de estoque
+  TRANSFERENCIA /// Transferência entre locais
+}
+
+/// 🎯 Enum TipoComissao - Tipos de comissão
+enum TipoComissao {
+  PERCENTUAL /// Comissão por percentual do valor
+  VALOR_FIXO /// Comissão por valor fixo
+  ESCALONADA /// Comissão escalonada por metas
+}
+
+/// 🚫 Enum TipoBloqueio - Tipos de bloqueio de agenda
+enum TipoBloqueio {
+  FERIAS /// Férias do barbeiro
+  ALMOCO /// Horário de almoço
+  FOLGA /// Dia de folga
+  MANUTENCAO /// Manutenção do estabelecimento
+  PERSONALIZADO /// Bloqueio personalizado
+}
+
+/// 📊 Enum TipoRelatorio - Tipos de relatórios do sistema
+enum TipoRelatorio {
+  VENDAS /// Relatório de vendas
+  COMISSOES /// Relatório de comissões
+  ESTOQUE /// Relatório de estoque
+  FINANCEIRO /// Relatório financeiro
+  AGENDAMENTOS /// Relatório de agendamentos
+}
+
+/// 🔔 Enum TipoNotificacao - Tipos de notificação
+enum TipoNotificacao {
+  LEMBRETE_AGENDAMENTO /// Lembrete de agendamento
+  PROMOCAO /// Notificação de promoção
+  ANIVERSARIO /// Parabéns de aniversário
+  FIDELIDADE /// Notificação de programa de fidelidade
+  COBRANCA /// Cobrança de pagamento
+}
+
+/// 🎁 Enum TipoPromocao - Tipos de promoção
+enum TipoPromocao {
+  DESCONTO_PERCENTUAL /// Desconto em percentual
+  DESCONTO_VALOR /// Desconto em valor fixo
+  FRETE_GRATIS /// Frete grátis
+  BRINDE /// Brinde na compra
+}
+
+/// 🏆 Enum NivelFidelidade - Níveis do programa de fidelidade
+enum NivelFidelidade {
+  BRONZE /// Nível bronze
+  PRATA /// Nível prata
+  OURO /// Nível ouro
+  DIAMANTE /// Nível diamante
+}
+
+/// 🔐 Enum TipoAuditoria - Tipos de auditoria
+enum TipoAuditoria {
+  CREATE /// Criação de registro
+  UPDATE /// Atualização de registro
+  DELETE /// Exclusão de registro
+  LOGIN /// Login no sistema
+  LOGOUT /// Logout do sistema
+  ACCESS /// Acesso a funcionalidade
+}
+
+// ========================================
+// 🔄 TABELA DE CONTROLE DE EVENTOS
+// ========================================
+
+/// 🔄 Modelo DomainEvent - Controla idempotência de eventos
+/// Garante que eventos não sejam processados múltiplas vezes
+model DomainEvent {
+  id          String   @id @default(cuid()) /// Identificador único
+  eventId     String   @map("event_id") /// ID único do evento
+  eventType   String   @map("event_type") /// Tipo do evento
+  handlerName String   @map("handler_name") /// Nome do handler
+  aggregateId String   @map("aggregate_id") /// ID da entidade principal
+  payload     Json? /// Payload do evento
+  processedAt DateTime @default(now()) @map("processed_at") /// Data de processamento
+  createdAt   DateTime @default(now()) @map("created_at") /// Data de criação
+
+  @@unique([eventId, handlerName]) /// Constraint de idempotência
+  @@index([eventId]) /// Índice por evento
+  @@index([eventType]) /// Índice por tipo
+  @@index([aggregateId]) /// Índice por entidade
+  @@map("domain_events") /// Nome da tabela
+}
+
+// ========================================
+// 💳 MODELOS SAAS
+// ========================================
+// Modelos específicos para funcionalidades SaaS
+
+/// 💳 Modelo Assinatura - Controla assinaturas SaaS por tenant
+/// Gerencia planos ativos, períodos e status de pagamento
+model Assinatura {
+  id          String           @id @default(cuid()) /// Identificador único da assinatura
+  barbeariaId String /// ID da barbearia (tenant)
+  barbearia   Barbearia        @relation(fields: [barbeariaId], references: [id], onDelete: Cascade) /// Referência à barbearia
+  planoId     String /// ID do plano contratado
+  plano       Plano            @relation(fields: [planoId], references: [id]) /// Plano contratado
+  status      AssinaturaStatus @default(ATIVA) /// Status da assinatura
+  periodStart DateTime /// Início do período atual
+  periodEnd   DateTime /// Fim do período atual
+  valor       Decimal          @db.Decimal(10, 2) /// Valor da assinatura
+
+  // 📋 Relacionamentos
+  faturas Fatura[] /// Faturas geradas para esta assinatura
+
+  // 📅 Campos de auditoria
+  createdAt DateTime  @default(now()) /// Data de criação
+  updatedAt DateTime  @updatedAt /// Data de atualização
+  deletedAt DateTime? /// Soft delete
+  version   Int       @default(1) /// Optimistic locking
+
+  @@index([barbeariaId]) /// Índice por tenant
+  @@index([status]) /// Índice por status
+  @@index([periodEnd]) /// Índice por vencimento
+}
+
+/// 🧾 Modelo Fatura - Controla faturas de assinatura
+/// Gerencia cobrança, vencimento e pagamento de assinaturas
+model Fatura {
+  id              String           @id @default(cuid()) /// Identificador único da fatura
+  assinaturaId    String /// ID da assinatura
+  assinatura      Assinatura       @relation(fields: [assinaturaId], references: [id], onDelete: Cascade) /// Assinatura relacionada
+  barbeariaId     String /// ID da barbearia (tenant)
+  barbearia       Barbearia        @relation(fields: [barbeariaId], references: [id], onDelete: Cascade) /// Referência à barbearia
+  numero          String           @unique /// Número único da fatura
+  valor           Decimal          @db.Decimal(10, 2) /// Valor da fatura
+  vencimento      DateTime /// Data de vencimento
+  pagoEm          DateTime? /// Data do pagamento
+  status          FaturaStatus     @default(PENDENTE) /// Status da fatura
+  metodoPagamento MetodoPagamento? /// Método usado no pagamento
+
+  // 🔗 Integração com gateway
+  gatewayTxnId String? /// ID da transação no gateway
+  gatewayData  Json? /// Dados adicionais do gateway
+
+  // 📅 Campos de auditoria
+  createdAt DateTime  @default(now()) /// Data de criação
+  updatedAt DateTime  @updatedAt /// Data de atualização
+  deletedAt DateTime? /// Soft delete
+
+  // 🔗 Relacionamentos
+  pagamentosAvancados PagamentoAvancado[] /// Pagamentos avançados desta fatura
+
+  @@index([barbeariaId]) /// Índice por tenant
+  @@index([status]) /// Índice por status
+  @@index([vencimento]) /// Índice por vencimento
+  @@index([numero]) /// Índice por número
+}
+
+/// 🎛️ Modelo TenantFeature - Controla features habilitadas por tenant
+/// Define quais funcionalidades estão disponíveis para cada barbearia
+model TenantFeature {
+  id          String    @id @default(cuid()) /// Identificador único
+  barbeariaId String /// ID da barbearia (tenant)
+  barbearia   Barbearia @relation(fields: [barbeariaId], references: [id], onDelete: Cascade) /// Referência à barbearia
+  feature     String /// Nome da feature (ex: "agenda_online", "limite_barbeiros")
+  enabled     Boolean   @default(true) /// Se a feature está habilitada
+  config      Json? /// Configurações específicas da feature
+
+  // 📅 Campos de auditoria
+  createdAt DateTime @default(now()) /// Data de criação
+  updatedAt DateTime @updatedAt /// Data de atualização
+
+  @@unique([barbeariaId, feature]) /// Uma feature por tenant
+  @@index([barbeariaId]) /// Índice por tenant
+  @@index([feature]) /// Índice por feature
+}
+
+/// ⏰ Modelo Turno - Define turnos de trabalho dos barbeiros
+/// Controla horários de funcionamento e disponibilidade
+model Turno {
+  id          String    @id @default(cuid()) /// Identificador único
+  barbeariaId String /// ID da barbearia
+  barbearia   Barbearia @relation(fields: [barbeariaId], references: [id], onDelete: Cascade) /// Referência à barbearia
+  barbeiroId  String? /// ID do barbeiro (opcional, pode ser geral)
+  barbeiro    Barbeiro? @relation(fields: [barbeiroId], references: [id], onDelete: Cascade) /// Barbeiro específico
+  diaSemana   Int /// Dia da semana (0=domingo, 6=sábado)
+  horaInicio  String /// Hora de início (formato HH:mm)
+  horaFim     String /// Hora de fim (formato HH:mm)
+  ativo       Boolean   @default(true) /// Se o turno está ativo
+
+  // 📅 Campos de auditoria
+  createdAt DateTime  @default(now()) /// Data de criação
+  updatedAt DateTime  @updatedAt /// Data de atualização
+  deletedAt DateTime? /// Soft delete
+
+  @@index([barbeariaId]) /// Índice por barbearia
+  @@index([barbeiroId]) /// Índice por barbeiro
+  @@index([diaSemana]) /// Índice por dia da semana
+}
+
+/// 🚫 Modelo BloqueioAgenda - Controla bloqueios na agenda
+/// Gerencia férias, folgas, almoço e outros bloqueios
+model BloqueioAgenda {
+  id          String       @id @default(cuid()) /// Identificador único
+  barbeariaId String /// ID da barbearia
+  barbearia   Barbearia    @relation(fields: [barbeariaId], references: [id], onDelete: Cascade) /// Referência à barbearia
+  barbeiroId  String? /// ID do barbeiro (opcional, pode ser geral)
+  barbeiro    Barbeiro?    @relation(fields: [barbeiroId], references: [id], onDelete: Cascade) /// Barbeiro específico
+  tipo        TipoBloqueio /// Tipo do bloqueio
+  titulo      String /// Título do bloqueio
+  descricao   String? /// Descrição adicional
+  dataInicio  DateTime /// Data/hora de início
+  dataFim     DateTime /// Data/hora de fim
+  recorrente  Boolean      @default(false) /// Se é um bloqueio recorrente
+
+  // 📅 Campos de auditoria
+  createdAt DateTime  @default(now()) /// Data de criação
+  updatedAt DateTime  @updatedAt /// Data de atualização
+  deletedAt DateTime? /// Soft delete
+
+  @@index([barbeariaId]) /// Índice por barbearia
+  @@index([barbeiroId]) /// Índice por barbeiro
+  @@index([dataInicio, dataFim]) /// Índice por período
+  @@index([tipo]) /// Índice por tipo
+}
+
+/// 💰 Modelo TabelaComissao - Define regras de comissão
+/// Controla percentuais e regras de comissionamento
+model TabelaComissao {
+  id          String       @id @default(cuid()) /// Identificador único
+  barbeariaId String /// ID da barbearia
+  barbearia   Barbearia    @relation(fields: [barbeariaId], references: [id], onDelete: Cascade) /// Referência à barbearia
+  barbeiroId  String? /// ID do barbeiro (opcional, pode ser geral)
+  barbeiro    Barbeiro?    @relation(fields: [barbeiroId], references: [id], onDelete: Cascade) /// Barbeiro específico
+  servicoId   String? /// ID do serviço (opcional)
+  servico     Servico?     @relation(fields: [servicoId], references: [id], onDelete: Cascade) /// Serviço específico
+  tipo        TipoComissao /// Tipo de comissão
+  percentual  Decimal?     @db.Decimal(5, 2) /// Percentual (para tipo PERCENTUAL)
+  valorFixo   Decimal?     @db.Decimal(10, 2) /// Valor fixo (para tipo VALOR_FIXO)
+  ativo       Boolean      @default(true) /// Se a regra está ativa
+
+  // 📋 Relacionamentos
+  repasses RepasseBarbeiro[] /// Repasses gerados por esta tabela
+
+  // 📅 Campos de auditoria
+  createdAt DateTime  @default(now()) /// Data de criação
+  updatedAt DateTime  @updatedAt /// Data de atualização
+  deletedAt DateTime? /// Soft delete
+
+  @@index([barbeariaId]) /// Índice por barbearia
+  @@index([barbeiroId]) /// Índice por barbeiro
+  @@index([servicoId]) /// Índice por serviço
+}
+
+/// 💸 Modelo RepasseBarbeiro - Controla repasses de comissão
+/// Registra valores a serem pagos aos barbeiros
+model RepasseBarbeiro {
+  id               String          @id @default(cuid()) /// Identificador único
+  barbeariaId      String /// ID da barbearia
+  barbearia        Barbearia       @relation(fields: [barbeariaId], references: [id], onDelete: Cascade) /// Referência à barbearia
+  barbeiroId       String /// ID do barbeiro
+  barbeiro         Barbeiro        @relation(fields: [barbeiroId], references: [id], onDelete: Cascade) /// Barbeiro que receberá
+  vendaId          String? /// ID da venda (opcional)
+  venda            Venda?          @relation(fields: [vendaId], references: [id], onDelete: Cascade) /// Venda relacionada
+  tabelaComissaoId String? /// ID da tabela de comissão
+  tabelaComissao   TabelaComissao? @relation(fields: [tabelaComissaoId], references: [id]) /// Tabela de comissão usada
+  valor            Decimal         @db.Decimal(10, 2) /// Valor do repasse
+  calculadoEm      DateTime        @default(now()) /// Data do cálculo
+  pagoEm           DateTime? /// Data do pagamento
+  status           PagamentoStatus @default(PENDENTE) /// Status do repasse
+
+  // 📅 Campos de auditoria
+  createdAt DateTime  @default(now()) /// Data de criação
+  updatedAt DateTime  @updatedAt /// Data de atualização
+  deletedAt DateTime? /// Soft delete
+
+  @@index([barbeariaId]) /// Índice por barbearia
+  @@index([barbeiroId]) /// Índice por barbeiro
+  @@index([vendaId]) /// Índice por venda
+  @@index([status]) /// Índice por status
+}
+
+/// 📊 Modelo FechamentoDiario - Controla fechamentos diários do caixa
+/// Registra o "Z" do dia com conferência por método de pagamento
+model FechamentoDiario {
+  id             String    @id @default(cuid()) /// Identificador único
+  barbeariaId    String /// ID da barbearia
+  barbearia      Barbearia @relation(fields: [barbeariaId], references: [id], onDelete: Cascade) /// Referência à barbearia
+  data           DateTime  @db.Date /// Data do fechamento
+  saldoInicial   Decimal   @db.Decimal(10, 2) /// Saldo inicial do dia
+  totalVendas    Decimal   @db.Decimal(10, 2) /// Total de vendas
+  totalDinheiro  Decimal   @db.Decimal(10, 2) /// Total em dinheiro
+  totalCartao    Decimal   @db.Decimal(10, 2) /// Total em cartão
+  totalPix       Decimal   @db.Decimal(10, 2) /// Total em PIX
+  totalDespesas  Decimal   @db.Decimal(10, 2) /// Total de despesas
+  saldoFinal     Decimal   @db.Decimal(10, 2) /// Saldo final calculado
+  saldoConferido Decimal?  @db.Decimal(10, 2) /// Saldo conferido fisicamente
+  diferenca      Decimal?  @db.Decimal(10, 2) /// Diferença encontrada
+  observacoes    String? /// Observações do fechamento
+  fechadoPorId   String /// ID do usuário que fechou
+  fechadoPor     Usuario   @relation(fields: [fechadoPorId], references: [id]) /// Usuário que fechou
+  fechadoEm      DateTime  @default(now()) /// Data/hora do fechamento
+
+  // 📅 Campos de auditoria
+  createdAt DateTime  @default(now()) /// Data de criação
+  updatedAt DateTime  @updatedAt /// Data de atualização
+  deletedAt DateTime? /// Soft delete
+
+  // 🔗 Relacionamentos
+  caixaSessoes CaixaSessao[] /// Sessões de caixa do fechamento
+  movimentos   CaixaMovimento[] /// Movimentos do fechamento
+
+  @@unique([barbeariaId, data]) /// Um fechamento por dia por barbearia
+  @@index([barbeariaId]) /// Índice por barbearia
+  @@index([data]) /// Índice por data
+}
+
+/// 💳 Modelo PagamentoAvancado - Controla pagamentos com gateway
+/// 💳 Modelo PagamentoAvancado - Pagamentos com simulação e parcelas
+/// Gerencia PIX, cartão, split, chargeback, reembolsos e parcelamento
+model PagamentoAvancado {
+  id            String          @id @default(cuid()) /// Identificador único
+  vendaId       String? /// ID da venda (opcional)
+  venda         Venda?          @relation(fields: [vendaId], references: [id], onDelete: Cascade) /// Venda relacionada
+  faturaId      String? /// ID da fatura (opcional)
+  fatura        Fatura?         @relation(fields: [faturaId], references: [id], onDelete: Cascade) /// Fatura relacionada
+  barbeariaId   String /// ID da barbearia (tenant)
+  barbearia     Barbearia       @relation(fields: [barbeariaId], references: [id], onDelete: Cascade) /// Referência à barbearia
+  
+  // 💰 Valores e tipo
+  tipo          TipoPagamento /// Tipo de pagamento
+  metodo        MetodoPagamento /// Método de pagamento
+  valorBruto    Decimal         @db.Decimal(10, 2) /// Valor da venda (base)
+  valorCliente  Decimal         @db.Decimal(10, 2) /// O que o cliente paga (com desconto/juros)
+  valorLiquido  Decimal         @db.Decimal(10, 2) /// O que a barbearia efetivamente recebe
+  repassaJuros  Boolean         @default(true) /// Se cliente paga juros (true) ou barbearia absorve (false)
+  status        StatusPagamento @default(PENDENTE) /// Status do pagamento
+
+  // 🔗 Integração com gateway
+  provider      String? /// Provedor (ex: "mercadopago", "pagarme")
+  providerTxnId String? /// ID da transação no provedor
+  providerData  Json? /// Dados adicionais do provedor
+  pixQrCode     String? /// QR Code PIX (se aplicável)
+  pixTxId       String? /// ID da transação PIX
+
+  // 💰 Split de pagamento
+  splitEnabled Boolean @default(false) /// Se tem split habilitado
+  splitData    Json? /// Dados do split (destinatários, valores)
+
+  // 🔄 Estorno e chargeback
+  chargebackEm    DateTime? /// Data do chargeback
+  chargebackValor Decimal?  @db.Decimal(10, 2) /// Valor do chargeback
+  estornoEm       DateTime? /// Data do estorno
+  estornoValor    Decimal?  @db.Decimal(10, 2) /// Valor do estorno
+  estornoMotivo   String? /// Motivo do estorno
+
+  // 🔐 Idempotência
+  idempotencyKey String? @unique /// Chave de idempotência
+  
+  // 🔗 Relacionamentos
+  parcelas      ParcelaAvancada[] /// Parcelas do pagamento
+  pagamentosSimples Pagamento[] /// Relacionamento com pagamentos simples (retrocompatibilidade)
+  
+  // 📅 Campos de auditoria
+  createdAt     DateTime        @default(now()) /// Data de criação
+  updatedAt     DateTime        @updatedAt /// Data de atualização
+  deletedAt     DateTime? /// Soft delete
+  createdByUsuarioId String?
+  createdByUsuario   Usuario? @relation("PagamentoAvancadoCreatedBy", fields: [createdByUsuarioId], references: [id])
+  updatedByUsuarioId String?
+  updatedByUsuario   Usuario? @relation("PagamentoAvancadoUpdatedBy", fields: [updatedByUsuarioId], references: [id])
+
+  @@index([vendaId]) /// Índice por venda
+  @@index([barbeariaId]) /// Índice por barbearia
+  @@index([status]) /// Índice por status
+  @@index([provider]) /// Índice por provedor
+  @@index([providerTxnId]) /// Índice por ID do provedor
+}
+
+/// 📦 Modelo EstoqueMovimento - Controla movimentações de estoque
+/// Registra entradas, saídas, ajustes e calcula custo médio
+model EstoqueMovimento {
+  id          String               @id @default(cuid()) /// Identificador único
+  barbeariaId String /// ID da barbearia
+  barbearia   Barbearia            @relation(fields: [barbeariaId], references: [id], onDelete: Cascade) /// Referência à barbearia
+  produtoId   String /// ID do produto
+  produto     Produto              @relation(fields: [produtoId], references: [id], onDelete: Cascade) /// Produto movimentado
+  tipo        EstoqueMovimentoTipo /// Tipo da movimentação
+  quantidade  Int /// Quantidade movimentada
+  custoUnit   Decimal              @db.Decimal(10, 2) /// Custo unitário
+  custoTotal  Decimal              @db.Decimal(10, 2) /// Custo total da movimentação
+  saldoAntes  Int /// Saldo antes da movimentação
+  saldoDepois Int /// Saldo após a movimentação
+  motivo      String /// Motivo da movimentação
+
+  // 📋 Referências opcionais
+  vendaId      String? /// ID da venda (se saída por venda)
+  venda        Venda?      @relation(fields: [vendaId], references: [id]) /// Venda relacionada
+  nfNumero     String? /// Número da nota fiscal
+  fornecedorId String? /// ID do fornecedor (se entrada)
+  fornecedor   Fornecedor? @relation(fields: [fornecedorId], references: [id]) /// Fornecedor relacionado
+
+  // 👤 Auditoria de usuário
+  usuarioId String /// ID do usuário que fez a movimentação
+  usuario   Usuario @relation(fields: [usuarioId], references: [id]) /// Usuário responsável
+
+  // 📅 Campos de auditoria
+  createdAt DateTime  @default(now()) /// Data de criação
+  updatedAt DateTime  @updatedAt /// Data de atualização
+  deletedAt DateTime? /// Soft delete
+
+  @@index([barbeariaId]) /// Índice por barbearia
+  @@index([produtoId]) /// Índice por produto
+  @@index([tipo]) /// Índice por tipo
+  @@index([createdAt]) /// Índice por data
+  @@index([vendaId]) /// Índice por venda
+}
+
+/// 📢 Modelo Campanha - Controla campanhas de marketing
+/// Gerencia campanhas por segmento, lembretes e promoções
+model Campanha {
+  id          String       @id @default(cuid()) /// Identificador único
+  barbeariaId String /// ID da barbearia
+  barbearia   Barbearia    @relation(fields: [barbeariaId], references: [id], onDelete: Cascade) /// Referência à barbearia
+  nome        String /// Nome da campanha
+  descricao   String? /// Descrição da campanha
+  tipo        TipoPromocao /// Tipo da promoção
+  canal       String /// Canal (WhatsApp, SMS, Email)
+  segmento    String? /// Segmento de clientes
+  mensagem    String /// Mensagem da campanha
+  dataInicio  DateTime /// Data de início
+  dataFim     DateTime? /// Data de fim (opcional)
+  ativo       Boolean      @default(true) /// Se a campanha está ativa
+
+  // 📊 Métricas
+  enviados   Int @default(0) /// Total de mensagens enviadas
+  entregues  Int @default(0) /// Total de mensagens entregues
+  abertos    Int @default(0) /// Total de mensagens abertas
+  cliques    Int @default(0) /// Total de cliques
+  conversoes Int @default(0) /// Total de conversões
+
+  // 📅 Campos de auditoria
+  createdAt DateTime  @default(now()) /// Data de criação
+  updatedAt DateTime  @updatedAt /// Data de atualização
+  deletedAt DateTime? /// Soft delete
+
+  @@index([barbeariaId]) /// Índice por barbearia
+  @@index([tipo]) /// Índice por tipo
+  @@index([dataInicio, dataFim]) /// Índice por período
+}
+
+/// 🎁 Modelo PacoteConsumo - Controla consumo de pacotes
+/// Registra uso de sessões/créditos de pacotes pelos clientes
+model PacoteConsumo {
+  id          String    @id @default(cuid()) /// Identificador único
+  pacoteId    String /// ID do pacote
+  pacote      Pacote    @relation(fields: [pacoteId], references: [id], onDelete: Cascade) /// Pacote relacionado
+  clienteId   String /// ID do cliente
+  cliente     Cliente   @relation(fields: [clienteId], references: [id], onDelete: Cascade) /// Cliente que consumiu
+  servicoId   String /// ID do serviço consumido
+  servico     Servico   @relation(fields: [servicoId], references: [id]) /// Serviço consumido
+  vendaId     String? /// ID da venda onde foi usado
+  venda       Venda?    @relation(fields: [vendaId], references: [id]) /// Venda relacionada
+  barbeariaId String /// ID da barbearia
+  barbearia   Barbearia @relation(fields: [barbeariaId], references: [id]) /// Barbearia relacionada
+  quantidade  Int       @default(1) /// Quantidade consumida
+  valorUnit   Decimal   @db.Decimal(10, 2) /// Valor unitário no momento do consumo
+
+  // 📅 Campos de auditoria
+  createdAt DateTime  @default(now()) /// Data de criação
+  updatedAt DateTime  @updatedAt /// Data de atualização
+  deletedAt DateTime? /// Soft delete
+
+  @@index([pacoteId]) /// Índice por pacote
+  @@index([clienteId]) /// Índice por cliente
+  @@index([servicoId]) /// Índice por serviço
+  @@index([vendaId]) /// Índice por venda
+  @@index([barbeariaId]) /// Índice por barbearia
+}
+
+/// 📋 Modelo AuditLog - Controla logs de auditoria
+/// Registra todas as ações importantes do sistema
+model AuditLog {
+  id          String        @id @default(cuid()) /// Identificador único
+  barbeariaId String /// ID da barbearia
+  barbearia   Barbearia     @relation(fields: [barbeariaId], references: [id], onDelete: Cascade) /// Referência à barbearia
+  actorId     String? /// ID do usuário que executou a ação
+  actor       Usuario?      @relation(fields: [actorId], references: [id]) /// Usuário que executou
+  action      TipoAuditoria /// Tipo da ação
+  entity      String /// Entidade afetada (ex: "Usuario", "Venda")
+  entityId    String /// ID da entidade afetada
+  ip          String? /// IP do usuário
+  userAgent   String? /// User agent do navegador
+  before      Json? /// Estado anterior (para updates/deletes)
+  after       Json? /// Estado posterior (para creates/updates)
+
+  // 📅 Campos de auditoria
+  createdAt DateTime @default(now()) /// Data de criação
+
+  @@index([barbeariaId]) /// Índice por barbearia
+  @@index([actorId]) /// Índice por usuário
+  @@index([entity]) /// Índice por entidade
+  @@index([entityId]) /// Índice por ID da entidade
+  @@index([createdAt]) /// Índice por data
+}
+
+/// 🔗 Modelo WebhookEndpoint - Controla endpoints de webhook
+/// Define URLs e eventos para notificações externas
+model WebhookEndpoint {
+  id          String    @id @default(cuid()) /// Identificador único
+  barbeariaId String /// ID da barbearia
+  barbearia   Barbearia @relation(fields: [barbeariaId], references: [id], onDelete: Cascade) /// Referência à barbearia
+  url         String /// URL do webhook
+  secret      String /// Secret para validação
+  events      String[] /// Eventos que o webhook escuta
+  ativo       Boolean   @default(true) /// Se o webhook está ativo
+
+  // 📋 Relacionamentos
+  deliveries WebhookDelivery[] /// Entregas deste webhook
+
+  // 📅 Campos de auditoria
+  createdAt DateTime  @default(now()) /// Data de criação
+  updatedAt DateTime  @updatedAt /// Data de atualização
+  deletedAt DateTime? /// Soft delete
+
+  @@index([barbeariaId]) /// Índice por barbearia
+  @@index([ativo]) /// Índice por status
+}
+
+/// 📤 Modelo WebhookDelivery - Controla entregas de webhook
+/// Registra tentativas de entrega e retries
+model WebhookDelivery {
+  id                String          @id @default(cuid()) /// Identificador único
+  barbeariaId       String /// ID da barbearia
+  barbearia         Barbearia       @relation(fields: [barbeariaId], references: [id], onDelete: Cascade) /// Referência à barbearia
+  webhookEndpointId String /// ID do endpoint
+  webhookEndpoint   WebhookEndpoint @relation(fields: [webhookEndpointId], references: [id], onDelete: Cascade) /// Endpoint relacionado
+  event             String /// Evento que disparou
+  payload           Json /// Payload enviado
+  httpStatus        Int? /// Status HTTP da resposta
+  response          String? /// Resposta do servidor
+  tentativas        Int             @default(0) /// Número de tentativas
+  maxTentativas     Int             @default(3) /// Máximo de tentativas
+  proximaTentativa  DateTime? /// Data da próxima tentativa
+  entregueEm        DateTime? /// Data da entrega bem-sucedida
+
+  // 📅 Campos de auditoria
+  createdAt DateTime @default(now()) /// Data de criação
+  updatedAt DateTime @updatedAt /// Data de atualização
+
+  @@index([barbeariaId]) /// Índice por barbearia
+  @@index([webhookEndpointId]) /// Índice por endpoint
+  @@index([event]) /// Índice por evento
+  @@index([proximaTentativa]) /// Índice por próxima tentativa
+}
+
+// Entidades centrais do sistema de gerenciamento de barbearias
+
+/// 🏪 Barbearia - Entidade central do sistema
+/// Representa um estabelecimento de barbearia com todos os seus dados e relacionamentos
+/// Cada barbearia é independente e possui seu próprio conjunto de dados
+model Barbearia {
+  id                   String    @id @default(cuid()) /// Identificador único da barbearia
+  nome                 String /// Nome comercial da barbearia
+  cnpj                 String? @unique /// CNPJ da empresa (opcional, mas único se informado)
+  endereco             String? /// Endereço completo da barbearia
+  telefone             String? /// Telefone de contato
+  email                String? /// Email de contato
+  horarioFuncionamento String? /// Horários de funcionamento
+  timezone             String    @default("America/Sao_Paulo") /// Timezone da barbearia
+  ativo                Boolean   @default(true) /// Status ativo/inativo da barbearia
+  modoCaixa            ModoCaixa @default(UNICO_DIARIO) /// Modo de operação do caixa
+
+  // 📅 Campos de auditoria
+  createdAt DateTime  @default(now()) /// Data de criação do registro
+  updatedAt DateTime  @updatedAt /// Data da última atualização
+  deletedAt DateTime? /// Data de exclusão (soft delete)
+  version   Int       @default(1) /// Controle de versão para optimistic locking
+
+  // 🔗 Relacionamentos - Entidades principais
+  usuarios          Usuario[] /// Usuários que trabalham na barbearia
+  barbeiros         Barbeiro[] /// Barbeiros cadastrados
+  clientes          Cliente[] /// Clientes da barbearia
+  produtos          Produto[] /// Produtos vendidos
+  servicos          Servico[] /// Serviços oferecidos
+  categoriasServico CategoriaServico[] /// Categorias de serviços
+
+  // 📦 Gestão de estoque e fornecedores
+  estoques     Estoque[] /// Controle de estoque dos produtos
+  fornecedores Fornecedor[] /// Fornecedores de produtos
+
+  // 💼 Pacotes e planos
+  pacotes Pacote[] /// Pacotes de serviços
+  planos  Plano[] /// Planos de assinatura
+
+  // 📅 Agendamentos e atendimentos
+  agendamentos Agendamento[] /// Agendamentos de clientes
+  historicos   HistoricoAtendimento[] /// Histórico de atendimentos realizados
+
+  // 💰 Gestão financeira
+  caixa            Caixa? /// Caixa principal da barbearia
+  caixaSessoes     CaixaSessao[] /// Sessões de abertura/fechamento de caixa
+  movimentosCaixa  CaixaMovimento[] /// Movimentos no caixa
+  vendas           Venda[] /// Vendas realizadas
+  transacoes       Transacao[] /// Transações financeiras
+  comissoes        Comissao[] /// Comissões dos barbeiros
+  despesas         Despesa[] /// Despesas da barbearia
+
+  // 🎯 Marketing e fidelização
+  fidelidades        Fidelidade[] /// Programa de fidelidade dos clientes
+  notificacoes       Notificacao[] /// Notificações enviadas
+  mensagensTemplates MensagemTemplate[] /// Templates de mensagens
+
+  // ⚙️ Configurações e integrações
+  configuracoes  Configuracao[] /// Configurações específicas da barbearia
+  arquivos       Arquivo[] /// Arquivos anexados
+  logsIntegracao LogIntegracao[] /// Logs de integrações externas
+
+  // 🆕 Novos relacionamentos SaaS
+  assinaturas         Assinatura[] /// Assinaturas da barbearia
+  faturas             Fatura[] /// Faturas geradas
+  tenantFeatures      TenantFeature[] /// Features habilitadas por tenant
+  turnos              Turno[] /// Turnos de trabalho
+  bloqueiosAgenda     BloqueioAgenda[] /// Bloqueios de agenda
+  tabelasComissao     TabelaComissao[] /// Tabelas de comissão
+  repassesBarbeiro    RepasseBarbeiro[] /// Repasses para barbeiros
+  fechamentosDiarios  FechamentoDiario[] /// Fechamentos diários
+  pagamentosAvancados PagamentoAvancado[] /// Pagamentos com gateway
+  estoqueMovimentos   EstoqueMovimento[] /// Movimentações de estoque
+  campanhas           Campanha[] /// Campanhas de marketing
+  pacoteConsumos      PacoteConsumo[] /// Consumo de pacotes
+  auditLogs           AuditLog[] /// Logs de auditoria
+  webhookEndpoints    WebhookEndpoint[] /// Endpoints de webhook
+  webhookDeliveries   WebhookDelivery[] /// Entregas de webhook
+  configJuros         ConfigJuros? /// Configuração de juros da barbearia
+
+  @@index([cnpj]) /// Índice para consultas por CNPJ
+  @@index([ativo]) /// Índice para consultas por status
+}
+
+/// 👤 Usuario - Usuários do sistema
+/// Representa todos os usuários que podem acessar o sistema (administradores, gerentes, barbeiros, atendentes)
+/// Cada usuário está associado a uma barbearia específica
+model Usuario {
+  id       String  @id @default(cuid()) /// Identificador único do usuário
+  nome     String /// Nome completo do usuário
+  email    String  @unique /// Email único para login
+  senha    String  @default("temp123") /// Senha criptografada
+  telefone String? /// Telefone de contato
+  role     Role    @default(BARBER) /// Papel/função do usuário no sistema
+  ativo    Boolean @default(true) /// Status ativo/inativo do usuário
+
+  // 🏪 Relacionamento com barbearia
+  barbeariaId String /// ID da barbearia onde o usuário trabalha
+  barbearia   Barbearia @relation(fields: [barbeariaId], references: [id], onDelete: Cascade)
+
+  // 📅 Campos de auditoria
+  createdAt DateTime  @default(now()) /// Data de criação do registro
+  updatedAt DateTime  @updatedAt /// Data da última atualização
+  deletedAt DateTime? /// Data de exclusão (soft delete)
+
+  // 🔗 Relacionamentos de auditoria - Registros criados pelo usuário
+  clientesCriados          Cliente[]          @relation("ClienteCreatedBy") /// Clientes cadastrados por este usuário
+  barbeirosCriados         Barbeiro[]         @relation("BarbeiroCreatedBy") /// Barbeiros cadastrados por este usuário
+  produtosCriados          Produto[]          @relation("ProdutoCreatedBy") /// Produtos cadastrados por este usuário
+  servicosCriados          Servico[]          @relation("ServicoCreatedBy") /// Serviços cadastrados por este usuário
+  categoriasCriadas        CategoriaServico[] @relation("CategoriaServicoCreatedBy") /// Categorias criadas por este usuário
+  fornecedoresCriados      Fornecedor[]       @relation("FornecedorCreatedBy") /// Fornecedores cadastrados por este usuário
+  pacotesCriados           Pacote[]           @relation("PacoteCreatedBy") /// Pacotes criados por este usuário
+  planosCriados            Plano[]            @relation("PlanoCreatedBy") /// Planos criados por este usuário
+  agendamentosCriados      Agendamento[]      @relation("AgendamentoCreatedBy") /// Agendamentos criados por este usuário
+  vendasCriadas            Venda[]            @relation("VendaCreatedBy") /// Vendas realizadas por este usuário
+  despesasCriadas          Despesa[]          @relation("DespesaCreatedBy") /// Despesas cadastradas por este usuário
+  pagamentosCriados        Pagamento[]        @relation("PagamentoCreatedBy") /// Pagamentos criados por este usuário
+  mensagemTemplatesCriados MensagemTemplate[] @relation("MensagemTemplateCreatedBy") /// Templates criados por este usuário
+  configuracoesCriadas     Configuracao[]     @relation("ConfiguracaoCreatedBy") /// Configurações criadas por este usuário
+  arquivosCriados          Arquivo[]          @relation("ArquivoCreatedBy") /// Arquivos criados por este usuário
+  pagamentosAvancadosCriados PagamentoAvancado[] @relation("PagamentoAvancadoCreatedBy") /// Pagamentos avançados criados
+
+  // 🔗 Relacionamentos de auditoria - Registros atualizados pelo usuário
+  clientesAtualizados          Cliente[]          @relation("ClienteUpdatedBy") /// Clientes atualizados por este usuário
+  barbeirosAtualizados         Barbeiro[]         @relation("BarbeiroUpdatedBy") /// Barbeiros atualizados por este usuário
+  produtosAtualizados          Produto[]          @relation("ProdutoUpdatedBy") /// Produtos atualizados por este usuário
+  servicosAtualizados          Servico[]          @relation("ServicoUpdatedBy") /// Serviços atualizados por este usuário
+  categoriasAtualizadas        CategoriaServico[] @relation("CategoriaServicoUpdatedBy") /// Categorias atualizadas por este usuário
+  fornecedoresAtualizados      Fornecedor[]       @relation("FornecedorUpdatedBy") /// Fornecedores atualizados por este usuário
+  pacotesAtualizados           Pacote[]           @relation("PacoteUpdatedBy") /// Pacotes atualizados por este usuário
+  planosAtualizados            Plano[]            @relation("PlanoUpdatedBy") /// Planos atualizados por este usuário
+  agendamentosAtualizados      Agendamento[]      @relation("AgendamentoUpdatedBy") /// Agendamentos atualizados por este usuário
+  vendasAtualizadas            Venda[]            @relation("VendaUpdatedBy") /// Vendas atualizadas por este usuário
+  despesasAtualizadas          Despesa[]          @relation("DespesaUpdatedBy") /// Despesas atualizadas por este usuário
+  pagamentosAtualizados        Pagamento[]        @relation("PagamentoUpdatedBy") /// Pagamentos atualizados por este usuário
+  mensagemTemplatesAtualizados MensagemTemplate[] @relation("MensagemTemplateUpdatedBy") /// Templates atualizados por este usuário
+  configuracoesAtualizadas     Configuracao[]     @relation("ConfiguracaoUpdatedBy") /// Configurações atualizadas por este usuário
+  arquivosAtualizados          Arquivo[]          @relation("ArquivoUpdatedBy") /// Arquivos atualizados por este usuário
+  pagamentosAvancadosAtualizados PagamentoAvancado[] @relation("PagamentoAvancadoUpdatedBy") /// Pagamentos avançados atualizados
+
+  // 💰 Relacionamentos financeiros
+  caixaSessoesAbertas CaixaSessao[] @relation("CaixaSessaoOpenedBy") /// Sessões de caixa abertas por este usuário
+  caixaSessoesFechadas CaixaSessao[] @relation("CaixaSessaoClosedBy") /// Sessões de caixa fechadas por este usuário
+  caixaSessoesOperador CaixaSessao[] @relation("CaixaSessaoOperador") /// Sessões de caixa como operador
+
+  // 🆕 Relacionamentos SaaS
+  barbeiro           Barbeiro?          @relation("UsuarioBarbeiro") /// Barbeiro associado ao usuário
+  fechamentosDiarios FechamentoDiario[] /// Fechamentos diários realizados
+  estoqueMovimentos  EstoqueMovimento[] /// Movimentações de estoque realizadas
+  auditLogs          AuditLog[] /// Logs de auditoria do usuário
+
+  // 💳 Relacionamentos de pagamentos avançados
+  configJurosCriadas     ConfigJuros[]     @relation("ConfigJurosCreatedBy") /// Configurações de juros criadas
+  configJurosAtualizadas ConfigJuros[]     @relation("ConfigJurosUpdatedBy") /// Configurações de juros atualizadas
+  parcelasAvancadasCriadas     ParcelaAvancada[]     @relation("ParcelaAvancadaCreatedBy") /// Parcelas avançadas criadas
+  parcelasAvancadasAtualizadas ParcelaAvancada[]     @relation("ParcelaAvancadaUpdatedBy") /// Parcelas avançadas atualizadas
+
+  @@index([barbeariaId]) /// Índice para otimizar consultas por barbearia
+  @@index([email]) /// Índice para otimizar consultas por email
+}
+
+/// 👤 Modelo Cliente - Representa os clientes da barbearia
+/// Armazena informações pessoais, histórico de atendimentos e relacionamentos com agendamentos e vendas
+model Cliente {
+  id              String    @id @default(cuid()) /// Identificador único do cliente (CUID)
+  nome            String /// Nome completo do cliente
+  telefone        String? /// Número de telefone (opcional)
+  email           String? /// Endereço de email (opcional)
+  dataNascimento  DateTime? /// Data de nascimento do cliente (opcional)
+  endereco        String? /// Endereço completo do cliente (opcional)
+  observacoes     String? /// Observações sobre o cliente (opcional)
+  fotoUrl         String? /// URL da foto de perfil (opcional)
+  ativo           Boolean   @default(true) /// Status ativo/inativo do cliente
+
+  // 🏢 Relacionamento com barbearia
+  barbeariaId String /// ID da barbearia à qual o cliente pertence
+  barbearia   Barbearia @relation(fields: [barbeariaId], references: [id]) /// Referência à barbearia
+
+  // 📋 Relacionamentos de histórico e serviços
+  historicos   HistoricoAtendimento[] /// Histórico de atendimentos do cliente
+  fidelidade   Fidelidade? /// Programa de fidelidade (opcional)
+  agendamentos Agendamento[] /// Agendamentos do cliente
+  vendas       Venda[] /// Vendas realizadas para o cliente
+
+  // 🆕 Relacionamentos SaaS
+  pacoteConsumos PacoteConsumo[] /// Consumo de pacotes pelo cliente
+
+  // 📅 Campos de auditoria temporal
+  createdAt DateTime  @default(now()) /// Data de criação do registro
+  updatedAt DateTime  @updatedAt /// Data da última atualização
+  deletedAt DateTime? /// Data de exclusão lógica (soft delete)
+
+  // 👥 Auditoria de usuários
+  createdByUsuarioId String? /// ID do usuário que criou o registro
+  createdByUsuario   Usuario? @relation("ClienteCreatedBy", fields: [createdByUsuarioId], references: [id]) /// Usuário criador
+  updatedByUsuarioId String? /// ID do usuário que atualizou o registro
+  updatedByUsuario   Usuario? @relation("ClienteUpdatedBy", fields: [updatedByUsuarioId], references: [id]) /// Usuário atualizador
+}
+
+/// 💇‍♂️ Modelo Barbeiro - Representa os profissionais da barbearia
+/// Armazena informações pessoais, comissões e relacionamentos com agendamentos e vendas
+model Barbeiro {
+  id             String  @id @default(cuid()) /// Identificador único do barbeiro (CUID)
+  nome           String /// Nome completo do barbeiro
+  telefone       String? /// Número de telefone (opcional)
+  comissaoPadrao Float   @default(0.0) /// Percentual de comissão padrão (0.0 a 1.0)
+
+  // 👤 Relacionamento com usuário do sistema
+  usuarioId String?  @unique /// ID do usuário associado (opcional)
+  usuario   Usuario? @relation("UsuarioBarbeiro", fields: [usuarioId], references: [id]) /// Usuário do sistema
+
+  // 🏢 Relacionamento com barbearia
+  barbeariaId String /// ID da barbearia à qual o barbeiro pertence
+  barbearia   Barbearia @relation(fields: [barbeariaId], references: [id]) /// Referência à barbearia
+
+  // 📋 Relacionamentos de trabalho
+  agendamentos Agendamento[] /// Agendamentos do barbeiro
+  comissoes    Comissao[] /// Comissões calculadas
+  historicos   HistoricoAtendimento[] /// Histórico de atendimentos realizados
+  vendas       Venda[] /// Vendas realizadas pelo barbeiro
+
+  // 🆕 Relacionamentos SaaS
+  turnos           Turno[] /// Turnos de trabalho do barbeiro
+  repassesBarbeiro RepasseBarbeiro[] /// Repasses de comissão
+  caixaSessoes     CaixaSessao[] /// Sessões de caixa do barbeiro (modo POR_BARBEIRO)
+
+  // 📅 Campos de auditoria
+  deletedAt          DateTime? /// Data de exclusão lógica (soft delete)
+  createdByUsuarioId String? /// ID do usuário que criou o registro
+  createdByUsuario   Usuario?         @relation("BarbeiroCreatedBy", fields: [createdByUsuarioId], references: [id]) /// Usuário criador
+  updatedByUsuarioId String? /// ID do usuário que atualizou o registro
+  updatedByUsuario   Usuario?         @relation("BarbeiroUpdatedBy", fields: [updatedByUsuarioId], references: [id]) /// Usuário atualizador
+  BloqueioAgenda     BloqueioAgenda[]
+  TabelaComissao     TabelaComissao[]
+}
+
+/// 🛍️ Modelo Produto - Representa os produtos vendidos na barbearia
+/// Armazena informações de preço, fornecedor e relacionamentos com estoque e vendas
+model Produto {
+  id    String @id @default(cuid()) /// Identificador único do produto (CUID)
+  nome  String /// Nome do produto
+  preco Float /// Preço de venda do produto
+
+  // 🏭 Relacionamento com fornecedor
+  fornecedor   Fornecedor? @relation(fields: [fornecedorId], references: [id]) /// Fornecedor do produto (opcional)
+  fornecedorId String? /// ID do fornecedor (opcional)
+
+  // 🏢 Relacionamento com barbearia
+  barbeariaId String /// ID da barbearia à qual o produto pertence
+  barbearia   Barbearia @relation(fields: [barbeariaId], references: [id]) /// Referência à barbearia
+
+  // 📦 Relacionamentos de estoque e vendas
+  estoque Estoque? /// Controle de estoque do produto
+  itens   ItemVenda[] /// Itens de venda que incluem este produto
+
+  // 🆕 Relacionamentos SaaS
+  movimentosEstoque EstoqueMovimento[] /// Movimentações de estoque do produto
+
+  // 📅 Campos de auditoria
+  deletedAt          DateTime? /// Data de exclusão lógica (soft delete)
+  createdByUsuarioId String? /// ID do usuário que criou o registro
+  createdByUsuario   Usuario?  @relation("ProdutoCreatedBy", fields: [createdByUsuarioId], references: [id]) /// Usuário criador
+  updatedByUsuarioId String? /// ID do usuário que atualizou o registro
+  updatedByUsuario   Usuario?  @relation("ProdutoUpdatedBy", fields: [updatedByUsuarioId], references: [id]) /// Usuário atualizador
+
+  @@index([barbeariaId]) /// Índice para otimizar consultas por barbearia
+}
+
+/// 🏭 Modelo Fornecedor - Representa os fornecedores de produtos da barbearia
+/// Armazena informações de contato e relacionamentos com produtos e despesas
+model Fornecedor {
+  id      String  @id @default(cuid()) /// Identificador único do fornecedor (CUID)
+  nome    String /// Nome ou razão social do fornecedor
+  contato String? /// Informações de contato (telefone, email, etc.)
+
+  // 📦 Relacionamentos com produtos e despesas
+  produtos Produto[] /// Produtos fornecidos por este fornecedor
+  despesas Despesa[] /// Despesas relacionadas a este fornecedor
+
+  // 🆕 Relacionamentos SaaS
+  movimentosEstoque EstoqueMovimento[] /// Movimentações de estoque do fornecedor
+
+  // 🏢 Relacionamento com barbearia
+  barbeariaId String /// ID da barbearia à qual o fornecedor pertence
+  barbearia   Barbearia @relation(fields: [barbeariaId], references: [id]) /// Referência à barbearia
+
+  // 📅 Campos de auditoria
+  deletedAt          DateTime? /// Data de exclusão lógica (soft delete)
+  createdByUsuarioId String? /// ID do usuário que criou o registro
+  createdByUsuario   Usuario?  @relation("FornecedorCreatedBy", fields: [createdByUsuarioId], references: [id]) /// Usuário criador
+  updatedByUsuarioId String? /// ID do usuário que atualizou o registro
+  updatedByUsuario   Usuario?  @relation("FornecedorUpdatedBy", fields: [updatedByUsuarioId], references: [id]) /// Usuário atualizador
+}
+
+/// ✂️ Modelo Servico - Representa os serviços oferecidos pela barbearia
+/// Armazena informações de preço, duração e relacionamentos com categorias e agendamentos
+model Servico {
+  id         String @id @default(cuid()) /// Identificador único do serviço (CUID)
+  nome       String /// Nome do serviço (ex: "Corte Masculino", "Barba")
+  preco      Float /// Preço do serviço
+  duracaoMin Int /// Duração estimada em minutos
+  
+  // 🆕 Campo adicional para compatibilidade com o código
+  duracaoMinutos Int? /// Campo alternativo para duração (pode usar duracaoMin)
+  
+  // 💰 Campo para comissão padrão do serviço
+  comissaoPadraoPercentual Decimal? /// Percentual de comissão padrão (ex: 40 = 40%)
+
+  // 🏢 Relacionamento com barbearia
+  barbeariaId String /// ID da barbearia à qual o serviço pertence
+  barbearia   Barbearia @relation(fields: [barbeariaId], references: [id]) /// Referência à barbearia
+
+  // 🏷️ Relacionamento com categoria
+  categoriaId String? /// ID da categoria do serviço (opcional)
+  categoria   CategoriaServico? @relation(fields: [categoriaId], references: [id]) /// Categoria do serviço
+
+  // 📋 Relacionamentos de agendamentos e vendas
+  agendamentos   Agendamento[] /// Agendamentos que incluem este serviço
+  itens          ItemVenda[] /// Itens de venda que incluem este serviço
+  historicos     HistoricoAtendimento[] /// Histórico de atendimentos com este serviço
+  pacoteConsumos PacoteConsumo[] /// Consumos de pacotes deste serviço
+
+  // 📅 Campos de auditoria
+  deletedAt          DateTime? /// Data de exclusão lógica (soft delete)
+  createdByUsuarioId String? /// ID do usuário que criou o registro
+  createdByUsuario   Usuario?         @relation("ServicoCreatedBy", fields: [createdByUsuarioId], references: [id]) /// Usuário criador
+  updatedByUsuarioId String? /// ID do usuário que atualizou o registro
+  updatedByUsuario   Usuario?         @relation("ServicoUpdatedBy", fields: [updatedByUsuarioId], references: [id]) /// Usuário atualizador
+  TabelaComissao     TabelaComissao[]
+
+  @@index([barbeariaId]) /// Índice para otimizar consultas por barbearia
+  @@index([categoriaId]) /// Índice para otimizar consultas por categoria
+}
+
+/// 🏷️ Modelo CategoriaServico - Representa as categorias de serviços da barbearia
+/// Organiza os serviços em grupos lógicos (ex: "Cortes", "Barbas", "Tratamentos")
+model CategoriaServico {
+  id   String @id @default(cuid()) /// Identificador único da categoria (CUID)
+  nome String /// Nome da categoria (ex: "Cortes", "Barbas")
+
+  // 🏢 Relacionamento com barbearia
+  barbeariaId String /// ID da barbearia à qual a categoria pertence
+  barbearia   Barbearia @relation(fields: [barbeariaId], references: [id]) /// Referência à barbearia
+
+  // ✂️ Relacionamento com serviços
+  servicos Servico[] /// Serviços que pertencem a esta categoria
+
+  // 📅 Campos de auditoria temporal
+  createdAt DateTime  @default(now()) /// Data de criação do registro
+  updatedAt DateTime  @updatedAt /// Data da última atualização
+  deletedAt DateTime? /// Data de exclusão lógica (soft delete)
+
+  // 👥 Auditoria de usuários
+  createdByUsuarioId String? /// ID do usuário que criou o registro
+  createdByUsuario   Usuario? @relation("CategoriaServicoCreatedBy", fields: [createdByUsuarioId], references: [id]) /// Usuário criador
+  updatedByUsuarioId String? /// ID do usuário que atualizou o registro
+  updatedByUsuario   Usuario? @relation("CategoriaServicoUpdatedBy", fields: [updatedByUsuarioId], references: [id]) /// Usuário atualizador
+
+  @@index([barbeariaId]) /// Índice para otimizar consultas por barbearia
+}
+
+/// 📦 Modelo Estoque - Controla o estoque dos produtos da barbearia
+/// Monitora quantidades disponíveis e alertas de estoque baixo
+model Estoque {
+  id String @id @default(cuid()) /// Identificador único do estoque (CUID)
+
+  // 🛍️ Relacionamento com produto (1:1)
+  produtoId String  @unique /// ID do produto (relacionamento único)
+  produto   Produto @relation(fields: [produtoId], references: [id]) /// Produto controlado no estoque
+
+  // 📊 Controle de quantidades
+  quantidade Int @default(0) /// Quantidade atual em estoque
+  alertaMin  Int @default(5) /// Quantidade mínima para alerta de estoque baixo
+
+  // 🏢 Relacionamento com barbearia
+  barbeariaId String /// ID da barbearia à qual o estoque pertence
+  barbearia   Barbearia @relation(fields: [barbeariaId], references: [id]) /// Referência à barbearia
+
+  @@index([barbeariaId]) /// Índice para otimizar consultas por barbearia
+}
+
+/// 📦 Modelo Pacote - Representa pacotes de serviços com desconto
+/// Agrupa múltiplos serviços com preço promocional e validade
+model Pacote {
+  id    String  @id @default(cuid()) /// Identificador único do pacote (CUID)
+  nome  String /// Nome do pacote (ex: "Pacote Completo", "Combo Barba+Corte")
+  valor Float /// Valor total do pacote com desconto
+  itens Json /// Serviços inclusos no pacote (estrutura JSON)
+  ativo Boolean @default(true) /// Status ativo/inativo do pacote
+
+  // 🏢 Relacionamento com barbearia
+  barbeariaId String /// ID da barbearia à qual o pacote pertence
+  barbearia   Barbearia @relation(fields: [barbeariaId], references: [id]) /// Referência à barbearia
+
+  // 🆕 Relacionamentos SaaS
+  pacoteConsumos PacoteConsumo[] /// Consumo deste pacote pelos clientes
+
+  // 📅 Campos de auditoria
+  createdAt          DateTime  @default(now()) /// Data de criação do registro
+  updatedAt          DateTime  @updatedAt /// Data da última atualização
+  deletedAt          DateTime? /// Data de exclusão lógica (soft delete)
+  createdByUsuarioId String? /// ID do usuário que criou o registro
+  createdByUsuario   Usuario?  @relation("PacoteCreatedBy", fields: [createdByUsuarioId], references: [id]) /// Usuário criador
+  updatedByUsuarioId String? /// ID do usuário que atualizou o registro
+  updatedByUsuario   Usuario?  @relation("PacoteUpdatedBy", fields: [updatedByUsuarioId], references: [id]) /// Usuário atualizador
+
+  @@index([barbeariaId]) /// Índice para otimizar consultas por barbearia
+}
+
+/// 💳 Modelo Plano - Representa planos de assinatura da barbearia
+/// Define mensalidades e benefícios para clientes recorrentes
+model Plano {
+  id          String  @id @default(cuid()) /// Identificador único do plano (CUID)
+  nome        String /// Nome do plano (ex: "Plano Premium", "Plano Básico")
+  mensalidade Float /// Valor da mensalidade do plano
+  beneficios  Json /// Benefícios inclusos no plano (estrutura JSON)
+  ativo       Boolean @default(true) /// Status ativo/inativo do plano
+
+  // 🏢 Relacionamento com barbearia
+  barbeariaId String /// ID da barbearia à qual o plano pertence
+  barbearia   Barbearia @relation(fields: [barbeariaId], references: [id]) /// Referência à barbearia
+
+  // 🆕 Relacionamentos SaaS
+  assinaturas Assinatura[] /// Assinaturas baseadas neste plano
+
+  // 📅 Campos de auditoria
+  deletedAt          DateTime? /// Data de exclusão lógica (soft delete)
+  createdByUsuarioId String? /// ID do usuário que criou o registro
+  createdByUsuario   Usuario?  @relation("PlanoCreatedBy", fields: [createdByUsuarioId], references: [id]) /// Usuário criador
+  updatedByUsuarioId String? /// ID do usuário que atualizou o registro
+  updatedByUsuario   Usuario?  @relation("PlanoUpdatedBy", fields: [updatedByUsuarioId], references: [id]) /// Usuário atualizador
+
+  @@index([barbeariaId]) /// Índice para otimizar consultas por barbearia
+}
+
+model Agendamento {
+  id                 String                 @id @default(cuid())
+  clienteId          String
+  cliente            Cliente                @relation(fields: [clienteId], references: [id])
+  barbeiroId         String
+  barbeiro           Barbeiro               @relation(fields: [barbeiroId], references: [id])
+  servicoId          String
+  servico            Servico                @relation(fields: [servicoId], references: [id])
+  barbeariaId        String
+  barbearia          Barbearia              @relation(fields: [barbeariaId], references: [id])
+
+  inicio             DateTime               /// Campo "início" oficial
+  fim                DateTime               /// Campo "fim" oficial
+  observacoes        String?                /// Observações sobre o agendamento
+  recorrencia TipoRecorrencia?
+  status      AgendamentoStatus @default(PENDENTE)
+  // dataHora        DateTime?              /// Campo legado - mantido para compatibilidade se necessário
+
+  createdAt          DateTime               @default(now())
+  updatedAt          DateTime               @updatedAt @default(now())      /// Necessário para BaseService
+  deletedAt          DateTime?
+
+  createdByUsuarioId String?
+  createdByUsuario   Usuario?               @relation("AgendamentoCreatedBy", fields: [createdByUsuarioId], references: [id])
+  updatedByUsuarioId String?
+  updatedByUsuario   Usuario?               @relation("AgendamentoUpdatedBy", fields: [updatedByUsuarioId], references: [id])
+
+  comissoes          Comissao[]
+  historicos         HistoricoAtendimento[]
+  vendas             Venda[]                /// Vendas originadas deste agendamento
+
+  @@index([barbeariaId, barbeiroId, inicio]) /// Índice composto para performance de agenda
+  @@index([clienteId])
+  @@index([barbeiroId])
+  @@index([inicio])
+}
+
+model HistoricoAtendimento {
+  id                    String            @id @default(cuid())
+  clienteId             String
+  cliente               Cliente           @relation(fields: [clienteId], references: [id])
+  barbeiroId            String
+  barbeiro              Barbeiro          @relation(fields: [barbeiroId], references: [id])
+  agendamentoId         String?
+  agendamento           Agendamento?      @relation(fields: [agendamentoId], references: [id])
+  servicoId             String?
+  servico               Servico?          @relation(fields: [servicoId], references: [id])
+  descricao             String
+  valorTotal            Float
+  data                  DateTime          @default(now())
+  barbeariaId           String
+  barbearia             Barbearia         @relation(fields: [barbeariaId], references: [id])
+  
+  // 🆕 Campos adicionados para compatibilidade com o código
+  dataHoraInicio        DateTime?         /// Data e hora de início do atendimento
+  dataHoraFim           DateTime?         /// Data e hora de fim do atendimento
+  duracaoMinutos        Int?              /// Duração do atendimento em minutos
+  observacoes           String?           /// Observações sobre o atendimento
+  avaliacaoCliente      AvaliacaoCliente? /// Avaliação do cliente sobre o atendimento
+  comentarioAvaliacao   String?           /// Comentário da avaliação do cliente
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  deletedAt       DateTime?
+
+  @@index([barbeariaId])
+  @@index([clienteId])
+  @@index([barbeiroId])
+  @@index([agendamentoId])
+  @@index([servicoId])
+}
+
+model Caixa {
+  id          String    @id @default(cuid())
+  barbeariaId String    @unique
+  barbearia   Barbearia @relation(fields: [barbeariaId], references: [id])
+  saldo       Float     @default(0.0)
+  updatedAt   DateTime  @updatedAt
+}
+
+model Transacao {
+  id          String    @id @default(cuid())
+  tipo        String
+  valor       Float
+  descricao   String?
+  data        DateTime  @default(now())
+  barbeariaId String
+  barbearia   Barbearia @relation(fields: [barbeariaId], references: [id])
+
+  @@index([barbeariaId])
+}
+
+model Comissao {
+  id            String       @id @default(cuid())
+  barbeiroId    String
+  barbeiro      Barbeiro     @relation(fields: [barbeiroId], references: [id])
+  agendamentoId String?
+  agendamento   Agendamento? @relation(fields: [agendamentoId], references: [id])
+  vendaId       String?
+  venda         Venda?       @relation(fields: [vendaId], references: [id])
+  percentual    Float
+  valor         Float
+  calculadoEm   DateTime     @default(now())
+  barbeariaId   String
+  barbearia     Barbearia    @relation(fields: [barbeariaId], references: [id])
+
+  @@index([barbeariaId])
+  @@index([barbeiroId])
+  @@index([agendamentoId])
+  @@index([vendaId])
+}
+
+model Fidelidade {
+  id          String    @id @default(cuid())
+  clienteId   String    @unique
+  cliente     Cliente   @relation(fields: [clienteId], references: [id])
+  pontos      Int       @default(0)
+  nivel       String    @default("BRONZE")
+  updatedAt   DateTime  @updatedAt
+  barbeariaId String
+  barbearia   Barbearia @relation(fields: [barbeariaId], references: [id])
+
+  @@index([barbeariaId])
+}
+
+model Notificacao {
+  id          String            @id @default(cuid())
+  tipo        String
+  payload     Json
+  enviadoEm   DateTime          @default(now())
+  status      NotificacaoStatus @default(ENVIADO)
+  barbeariaId String
+  barbearia   Barbearia         @relation(fields: [barbeariaId], references: [id])
+
+  @@index([barbeariaId])
+}
+
+// --- Novos modelos para Vendas e Caixa com sessões e lançamentos ---
+
+model Venda {
+  id               String            @id @default(cuid())
+  barbeariaId      String
+  barbearia        Barbearia         @relation(fields: [barbeariaId], references: [id])
+  clienteId        String?
+  cliente          Cliente?          @relation(fields: [clienteId], references: [id])
+  barbeiroId       String?
+  barbeiro         Barbeiro?         @relation(fields: [barbeiroId], references: [id])
+  agendamentoId    String?           /// ID do agendamento que originou esta venda
+  agendamento      Agendamento?      @relation(fields: [agendamentoId], references: [id])
+  status           VendaStatus       @default(ABERTA)
+  valorTotal       Float             @default(0.0)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  itens            ItemVenda[]
+  pagamentos       Pagamento[]
+  comissoes        Comissao[]
+  movimentosCaixa  CaixaMovimento[]
+
+  // 🆕 Relacionamentos SaaS
+  repassesBarbeiro    RepasseBarbeiro[] /// Repasses de comissão desta venda
+  movimentosEstoque   EstoqueMovimento[] /// Movimentações de estoque desta venda
+  pagamentosAvancados PagamentoAvancado[] /// Pagamentos avançados (PIX, cartão, etc.)
+  pacoteConsumos      PacoteConsumo[] /// Consumos de pacotes desta venda
+  deletedAt           DateTime?
+  createdByUsuarioId  String?
+  createdByUsuario    Usuario?            @relation("VendaCreatedBy", fields: [createdByUsuarioId], references: [id])
+  updatedByUsuarioId  String?
+  updatedByUsuario    Usuario?            @relation("VendaUpdatedBy", fields: [updatedByUsuarioId], references: [id])
+
+  @@index([barbeariaId])
+  @@index([clienteId, createdAt]) /// Índice composto para relatórios por cliente
+  @@index([createdAt, barbeariaId]) /// Índice para relatórios de vendas por período
+  @@index([agendamentoId]) /// Índice para buscar vendas por agendamento
+}
+
+model ItemVenda {
+  id         String   @id @default(cuid())
+  vendaId    String
+  venda      Venda    @relation(fields: [vendaId], references: [id])
+  produtoId  String?
+  produto    Produto? @relation(fields: [produtoId], references: [id])
+  servicoId  String?
+  servico    Servico? @relation(fields: [servicoId], references: [id])
+  quantidade Int      @default(1)
+  precoUnit  Decimal  @db.Decimal(10, 2) /// Preço unitário em decimal para precisão
+  total      Decimal  @db.Decimal(10, 2) /// Total em decimal para precisão
+
+  // 📝 Campos para histórico (evita quebrar relatórios após rename)
+  produtoNome String? /// Nome do produto no momento da venda
+  servicoNome String? /// Nome do serviço no momento da venda
+  
+  // 💰 Campos para comissão
+  comissaoTipo       String?  /// Tipo de comissão: 'FIXA' ou 'PERCENTUAL'
+  comissaoValor      Decimal? @db.Decimal(10, 2) /// Valor da comissão (fixo ou percentual)
+  comissaoCalculada  Decimal? @db.Decimal(10, 2) /// Valor calculado da comissão
+
+  @@index([vendaId])
+}
+
+model Pagamento {
+  id       String          @id @default(cuid())
+  vendaId  String
+  venda    Venda           @relation(fields: [vendaId], references: [id])
+  valor    Decimal         @db.Decimal(10, 2) /// Valor em decimal para precisão
+  metodo   MetodoPagamento
+  status   PagamentoStatus @default(PENDENTE)
+  pagoEm   DateTime?
+  criadoEm DateTime        @default(now())
+
+  movimentosCaixa CaixaMovimento[]
+
+  // 🆕 Relacionamentos SaaS
+  pagamentoAvancado   PagamentoAvancado? @relation(fields: [pagamentoAvancadoId], references: [id]) /// Pagamento avançado associado
+  pagamentoAvancadoId String? /// ID do pagamento avançado
+
+  // 📅 Campos de auditoria
+  deletedAt          DateTime?
+  createdByUsuarioId String?
+  createdByUsuario   Usuario?  @relation("PagamentoCreatedBy", fields: [createdByUsuarioId], references: [id])
+  updatedByUsuarioId String?
+  updatedByUsuario   Usuario?  @relation("PagamentoUpdatedBy", fields: [updatedByUsuarioId], references: [id])
+
+  @@index([vendaId])
+  @@index([status, criadoEm]) /// Índice para relatórios de pagamentos
+}
+
+model CaixaSessao {
+  id                 String            @id @default(cuid())
+  barbeariaId        String
+  barbearia          Barbearia         @relation(fields: [barbeariaId], references: [id])
+  barbeiroId         String?           /// ID do barbeiro (para modo POR_BARBEIRO)
+  barbeiro           Barbeiro?         @relation(fields: [barbeiroId], references: [id]) /// Barbeiro responsável
+  operadorId         String?           /// ID do operador (para modo POR_OPERADOR)
+  operador           Usuario?          @relation("CaixaSessaoOperador", fields: [operadorId], references: [id]) /// Operador responsável
+  openedAt           DateTime          @default(now()) /// Data/hora de abertura
+  closedAt           DateTime?         /// Data/hora de fechamento
+  openedByUserId     String            /// ID do usuário que abriu
+  openedByUser       Usuario           @relation("CaixaSessaoOpenedBy", fields: [openedByUserId], references: [id]) /// Usuário que abriu
+  closedByUserId     String?           /// ID do usuário que fechou
+  closedByUser       Usuario?          @relation("CaixaSessaoClosedBy", fields: [closedByUserId], references: [id]) /// Usuário que fechou
+  valorAbertura      Decimal           @default(0) @db.Decimal(10, 2) /// Valor inicial do caixa
+  valorFechamento    Decimal?          @db.Decimal(10, 2) /// Valor final informado
+  diferenca          Decimal?          @db.Decimal(10, 2) /// Diferença entre calculado e informado
+  movimentos         CaixaMovimento[]  /// Movimentos desta sessão
+
+  // 🆕 Relacionamentos SaaS
+  fechamentoDiario   FechamentoDiario? @relation(fields: [fechamentoDiarioId], references: [id]) /// Fechamento diário associado
+  fechamentoDiarioId String? /// ID do fechamento diário
+
+  // 📅 Campos de auditoria
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([barbeariaId])
+  @@index([barbeiroId])
+  @@index([operadorId])
+}
+
+model CaixaMovimento {
+  id          String          @id @default(cuid())
+  sessaoId    String          /// ID da sessão de caixa
+  sessao      CaixaSessao     @relation(fields: [sessaoId], references: [id], onDelete: Cascade) /// Sessão relacionada
+  vendaId     String?         /// ID da venda (se aplicável)
+  venda       Venda?          @relation(fields: [vendaId], references: [id]) /// Venda relacionada
+  pagamentoId String?         /// ID do pagamento (se aplicável)
+  pagamento   Pagamento?      @relation(fields: [pagamentoId], references: [id]) /// Pagamento relacionado
+  tipo        TipoMovimento   /// Tipo do movimento (ENTRADA, SAIDA, AJUSTE)
+  metodo      TipoPagamento?  /// Método de pagamento
+  valor       Decimal         @default(0) @db.Decimal(10, 2) /// Valor do movimento
+  descricao   String?         /// Descrição do movimento
+  origem      String?         /// Origem: MANUAL, AUTOMATICO, AJUSTE
+  createdAt   DateTime        @default(now()) /// Data de criação
+
+  // 🏢 Relacionamento com barbearia
+  barbeariaId String /// ID da barbearia
+  barbearia   Barbearia @relation(fields: [barbeariaId], references: [id]) /// Barbearia relacionada
+
+  // 🆕 Relacionamentos SaaS
+  fechamentoDiarioId String?
+  fechamentoDiario   FechamentoDiario? @relation(fields: [fechamentoDiarioId], references: [id]) /// Fechamento diário
+
+  @@index([sessaoId])
+  @@index([vendaId])
+  @@index([pagamentoId])
+  @@index([tipo])
+  @@index([barbeariaId])
+}
+
+model MensagemTemplate {
+  id                 String    @id @default(cuid())
+  nome               String
+  tipo               String // ex: "LEMBRETE_AGENDAMENTO", "PROMOCAO", "ANIVERSARIO"
+  conteudo           String // corpo do texto, com placeholders tipo {{cliente}}, {{data}}
+  ativo              Boolean   @default(true)
+  barbeariaId        String
+  barbearia          Barbearia @relation(fields: [barbeariaId], references: [id])
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  deletedAt          DateTime?
+  createdByUsuarioId String?
+  createdByUsuario   Usuario?  @relation("MensagemTemplateCreatedBy", fields: [createdByUsuarioId], references: [id])
+  updatedByUsuarioId String?
+  updatedByUsuario   Usuario?  @relation("MensagemTemplateUpdatedBy", fields: [updatedByUsuarioId], references: [id])
+
+  @@index([barbeariaId])
+}
+
+model LogIntegracao {
+  id          String              @id @default(cuid())
+  tipo        String // ex: "WHATSAPP", "N8N", "EMAIL"
+  endpoint    String?
+  payload     Json?
+  status      LogIntegracaoStatus
+  mensagem    String?
+  criadoEm    DateTime            @default(now())
+  barbeariaId String
+  barbearia   Barbearia           @relation(fields: [barbeariaId], references: [id])
+  deletedAt   DateTime?
+
+  @@index([barbeariaId])
+}
+
+model Despesa {
+  id                 String           @id @default(cuid())
+  descricao          String
+  valor              Float
+  tipo               String // ex: "ALUGUEL", "PRODUTOS", "AGUA", "LUZ"
+  vencimento         DateTime
+  pagoEm             DateTime?
+  status             PagamentoStatus  @default(PENDENTE)
+  metodo             MetodoPagamento?
+  barbeariaId        String
+  barbearia          Barbearia        @relation(fields: [barbeariaId], references: [id])
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  fornecedorId       String?
+  fornecedor         Fornecedor?      @relation(fields: [fornecedorId], references: [id])
+  deletedAt          DateTime?
+  createdByUsuarioId String?
+  createdByUsuario   Usuario?         @relation("DespesaCreatedBy", fields: [createdByUsuarioId], references: [id])
+  updatedByUsuarioId String?
+  updatedByUsuario   Usuario?         @relation("DespesaUpdatedBy", fields: [updatedByUsuarioId], references: [id])
+
+  @@index([barbeariaId])
+  @@index([fornecedorId])
+}
+
+model Configuracao {
+  id                 String    @id @default(cuid())
+  chave              String
+  valor              String
+  barbeariaId        String
+  barbearia          Barbearia @relation(fields: [barbeariaId], references: [id])
+  updatedAt          DateTime  @updatedAt
+  deletedAt          DateTime?
+  createdByUsuarioId String?
+  createdByUsuario   Usuario?  @relation("ConfiguracaoCreatedBy", fields: [createdByUsuarioId], references: [id])
+  updatedByUsuarioId String?
+  updatedByUsuario   Usuario?  @relation("ConfiguracaoUpdatedBy", fields: [updatedByUsuarioId], references: [id])
+
+  @@index([barbeariaId])
+}
+
+model Arquivo {
+  id                 String    @id @default(cuid())
+  nome               String
+  tipo               String
+  url                String
+  entidade           String? // ex: "CLIENTE", "PRODUTO", "VENDA"
+  referenciaId       String? // id do cliente/produto/venda relacionado
+  barbeariaId        String
+  barbearia          Barbearia @relation(fields: [barbeariaId], references: [id])
+  criadoEm           DateTime  @default(now())
+  deletedAt          DateTime?
+  createdByUsuarioId String?
+  createdByUsuario   Usuario?  @relation("ArquivoCreatedBy", fields: [createdByUsuarioId], references: [id])
+  updatedByUsuarioId String?
+  updatedByUsuario   Usuario?  @relation("ArquivoUpdatedBy", fields: [updatedByUsuarioId], references: [id])
+
+  @@index([barbeariaId])
+}
+
+// ========================================
+// 💳 MODELOS DE PAGAMENTO AVANÇADO
+// ========================================
+
+/// ⚙️ Modelo ConfigJuros - Configuração de juros por barbearia
+/// Define taxas de juros, descontos e limites para simulação de pagamentos
+model ConfigJuros {
+  id               String   @id @default(cuid()) /// Identificador único
+  barbeariaId      String   @unique /// ID da barbearia (tenant)
+  barbearia        Barbearia @relation(fields: [barbeariaId], references: [id], onDelete: Cascade) /// Referência à barbearia
+  jurosPercentual  Decimal  @db.Decimal(5, 2) /// Percentual base de juros (ex: 2.90)
+  jurosPorParcela  Decimal  @db.Decimal(5, 2) /// Juros por parcela (ex: 0.19)
+  descontoAvista   Decimal? @db.Decimal(5, 2) /// Desconto à vista opcional (ex: 5.00)
+  minValorParcela  Decimal? @db.Decimal(10, 2) /// Valor mínimo por parcela (ex: 5.00)
+  maxParcelas      Int?     /// Máximo de parcelas permitidas (ex: 12)
+  
+  // 📅 Campos de auditoria
+  createdAt        DateTime @default(now()) /// Data de criação
+  updatedAt        DateTime @updatedAt /// Data de atualização
+  deletedAt        DateTime? /// Soft delete
+  createdByUsuarioId String?
+  createdByUsuario   Usuario? @relation("ConfigJurosCreatedBy", fields: [createdByUsuarioId], references: [id])
+  updatedByUsuarioId String?
+  updatedByUsuario   Usuario? @relation("ConfigJurosUpdatedBy", fields: [updatedByUsuarioId], references: [id])
+
+  @@index([barbeariaId]) /// Índice por tenant
+}
+
+/// 📋 Modelo ParcelaAvancada - Parcelas de pagamentos avançados
+/// Controla vencimentos, valores e status de cada parcela
+model ParcelaAvancada {
+  id             String        @id @default(cuid()) /// Identificador único
+  pagamentoId    String /// ID do pagamento avançado
+  pagamento      PagamentoAvancado @relation(fields: [pagamentoId], references: [id], onDelete: Cascade) /// Pagamento relacionado
+  numero         Int /// Número da parcela (1, 2, 3...)
+  valor          Decimal       @db.Decimal(10, 2) /// Valor da parcela
+  dataVencimento DateTime /// Data de vencimento
+  dataPagamento  DateTime? /// Data do pagamento (quando paga)
+  status         StatusParcela @default(PENDENTE) /// Status da parcela
+  
+  // 🔗 Integração com gateway
+  gatewayTxnId   String? /// ID da transação no gateway
+  gatewayData    Json? /// Dados adicionais do gateway
+  
+  // 📅 Campos de auditoria
+  createdAt      DateTime      @default(now()) /// Data de criação
+  updatedAt      DateTime      @updatedAt /// Data de atualização
+  deletedAt      DateTime? /// Soft delete
+  createdByUsuarioId String?
+  createdByUsuario   Usuario? @relation("ParcelaAvancadaCreatedBy", fields: [createdByUsuarioId], references: [id])
+  updatedByUsuarioId String?
+  updatedByUsuario   Usuario? @relation("ParcelaAvancadaUpdatedBy", fields: [updatedByUsuarioId], references: [id])
+
+  @@index([pagamentoId]) /// Índice por pagamento
+  @@index([dataVencimento]) /// Índice por vencimento
+  @@index([status]) /// Índice por status
+  @@unique([pagamentoId, numero]) /// Constraint: uma parcela por número por pagamento
+}

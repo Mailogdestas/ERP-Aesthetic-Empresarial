@@ -1,0 +1,59 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-erp_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-erp_pass}
+      POSTGRES_DB: ${POSTGRES_DB:-erp_barbearia}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  n8n:
+    image: n8nio/n8n:1.72.0
+    restart: unless-stopped
+    environment:
+      N8N_HOST: ${N8N_HOST:-localhost}
+      N8N_PORT: ${N8N_PORT:-5678}
+      WEBHOOK_URL: ${N8N_WEBHOOK_URL:-http://localhost:5678/}
+    ports:
+      - "${N8N_PORT:-5678}:5678"
+    volumes:
+      - n8n_data:/home/node/.n8n
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: "postgresql://${POSTGRES_USER:-erp_user}:${POSTGRES_PASSWORD:-erp_pass}@db:5432/${POSTGRES_DB:-erp_barbearia}?schema=public"
+      JWT_SECRET: ${JWT_SECRET:-supersecret}
+      N8N_WEBHOOK_URL: ${N8N_WEBHOOK_URL:-http://n8n:5678/}
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: ${BACKEND_PORT:-3001}
+    ports:
+      - "${BACKEND_PORT:-3001}:3001"
+    command: ["sh", "-c", "npx prisma migrate deploy && node dist/src/main.js"]
+    volumes:
+      - ./backend:/app
+    working_dir: /app
+
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3001}
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    command: ["sh", "-c", "npm run dev"]
+    volumes:
+      - ./frontend:/app
+    working_dir: /app
+
+volumes:
+  db_data:
+  n8n_data:

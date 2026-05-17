@@ -1,0 +1,536 @@
+{
+  "info": {
+    "name": "ERP Barbearia API - Fluxo Completo",
+    "_postman_id": "b8f73b54-0c3a-4f2b-8a5d-erp-barber-complete",
+    "description": "Coleção organizada em ordem cronológica para desenvolvimento do frontend. Siga a sequência: 1) Login → 2) Setup inicial → 3) Operações do dia a dia",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3001/api" },
+    { "key": "token", "value": "" },
+    { "key": "barbeariaId", "value": "tenant-1" },
+    { "key": "usuarioId", "value": "" },
+    { "key": "clienteId", "value": "" },
+    { "key": "barbeiroId", "value": "" },
+    { "key": "servicoId", "value": "" },
+    { "key": "agendamentoId", "value": "" },
+    { "key": "vendaId", "value": "" },
+    { "key": "sessaoId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "1. 🔐 Autenticação",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/auth/login", "host": ["{{baseUrl}}"], "path": ["auth", "login"] },
+            "body": { 
+              "mode": "raw", 
+              "raw": "{\n  \"email\": \"admin@barbearia.com\",\n  \"senha\": \"admin123\"\n}" 
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const data = pm.response.json();",
+                  "if (data && data.accessToken) {",
+                  "  pm.collectionVariables.set('token', data.accessToken);",
+                  "  console.log('Token configurado:', data.accessToken);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "2. 👥 Gestão de Usuários",
+      "item": [
+        {
+          "name": "Listar Usuários",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/usuarios", "host": ["{{baseUrl}}"], "path": ["usuarios"] }
+          }
+        },
+        {
+          "name": "Criar Usuário (Gerente)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/usuarios", "host": ["{{baseUrl}}"], "path": ["usuarios"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"novo.gerente@barbearia.com\",\n  \"senha\": \"gerente123\",\n  \"nome\": \"Novo Gerente\",\n  \"role\": \"GERENTE\",\n  \"barbeariaId\": \"{{barbeariaId}}\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Criar Usuário (Barbeiro)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/usuarios", "host": ["{{baseUrl}}"], "path": ["usuarios"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"novo.barbeiro@barbearia.com\",\n  \"senha\": \"barbeiro123\",\n  \"nome\": \"Novo Barbeiro\",\n  \"role\": \"BARBEIRO\",\n  \"barbeariaId\": \"{{barbeariaId}}\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. 🏪 Gestão de Barbearias",
+      "item": [
+        {
+          "name": "Listar Barbearias",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/barbearias", "host": ["{{baseUrl}}"], "path": ["barbearias"] }
+          }
+        },
+        {
+          "name": "Criar Barbearia",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/barbearias", "host": ["{{baseUrl}}"], "path": ["barbearias"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Nova Barbearia\",\n  \"endereco\": \"Rua das Flores, 123\",\n  \"telefone\": \"(11) 99999-9999\",\n  \"email\": \"contato@novabarbearia.com\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. ✂️ Barbeiros",
+      "item": [
+        {
+          "name": "Listar Barbeiros",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/barbeiros?barbeariaId={{barbeariaId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["barbeiros"],
+              "query": [{ "key": "barbeariaId", "value": "{{barbeariaId}}" }]
+            }
+          }
+        },
+        {
+          "name": "Criar Barbeiro",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/barbeiros", "host": ["{{baseUrl}}"], "path": ["barbeiros"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"João Silva\",\n  \"contato\": \"(11) 98888-8888\",\n  \"telefone\": \"(11) 98888-8888\",\n  \"comissao\": 40.0,\n  \"barbeariaId\": \"{{barbeariaId}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const data = pm.response.json();",
+                  "if (data && data.id) {",
+                  "  pm.collectionVariables.set('barbeiroId', data.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "5. 🛍️ Serviços e Produtos",
+      "item": [
+        {
+          "name": "Listar Serviços",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/servicos/barbearia/{{barbeariaId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["servicos", "barbearia", "{{barbeariaId}}"]
+            }
+          }
+        },
+        {
+          "name": "Criar Serviço",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/servicos", "host": ["{{baseUrl}}"], "path": ["servicos"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Corte Masculino\",\n  \"descricao\": \"Corte tradicional masculino\",\n  \"preco\": 35.00,\n  \"duracao\": 30,\n  \"barbeariaId\": \"{{barbeariaId}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const data = pm.response.json();",
+                  "if (data && data.id) {",
+                  "  pm.collectionVariables.set('servicoId', data.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar Produtos",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/produtos/barbearia/{{barbeariaId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["produtos", "barbearia", "{{barbeariaId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. 👤 Clientes",
+      "item": [
+        {
+          "name": "Listar Clientes",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/clientes?barbeariaId={{barbeariaId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["clientes"],
+              "query": [{ "key": "barbeariaId", "value": "{{barbeariaId}}" }]
+            }
+          }
+        },
+        {
+          "name": "Criar Cliente",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/clientes", "host": ["{{baseUrl}}"], "path": ["clientes"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Carlos Santos\",\n  \"whatsapp\": \"11999887766\",\n  \"telefone\": \"1133334444\",\n  \"email\": \"carlos@email.com\",\n  \"barbeariaId\": \"{{barbeariaId}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const data = pm.response.json();",
+                  "if (data && data.id) {",
+                  "  pm.collectionVariables.set('clienteId', data.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "7. 📅 Agendamentos",
+      "item": [
+        {
+          "name": "Listar Agendamentos",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/agendamentos?barbeariaId={{barbeariaId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["agendamentos"],
+              "query": [{ "key": "barbeariaId", "value": "{{barbeariaId}}" }]
+            }
+          }
+        },
+        {
+          "name": "Criar Agendamento",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/agendamentos", "host": ["{{baseUrl}}"], "path": ["agendamentos"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clienteId\": \"{{clienteId}}\",\n  \"barbeiroId\": \"{{barbeiroId}}\",\n  \"servicoId\": \"{{servicoId}}\",\n  \"barbeariaId\": \"{{barbeariaId}}\",\n  \"dataHora\": \"2024-12-20T10:00:00.000Z\",\n  \"observacoes\": \"Cliente preferencial\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const data = pm.response.json();",
+                  "if (data && data.id) {",
+                  "  pm.collectionVariables.set('agendamentoId', data.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Confirmar Agendamento",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/agendamentos/{{agendamentoId}}/confirmar",
+              "host": ["{{baseUrl}}"],
+              "path": ["agendamentos", "{{agendamentoId}}", "confirmar"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. 💰 Caixa e Sessões",
+      "item": [
+        {
+          "name": "Abrir Sessão de Caixa",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/caixa/sessoes", "host": ["{{baseUrl}}"], "path": ["caixa", "sessoes"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"barbeariaId\": \"{{barbeariaId}}\",\n  \"abertoPorUsuarioId\": \"{{usuarioId}}\",\n  \"saldoInicial\": 100.00\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const data = pm.response.json();",
+                  "if (data && data.id) {",
+                  "  pm.collectionVariables.set('sessaoId', data.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar Sessões",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/caixa/sessoes?barbeariaId={{barbeariaId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["caixa", "sessoes"],
+              "query": [{ "key": "barbeariaId", "value": "{{barbeariaId}}" }]
+            }
+          }
+        },
+        {
+          "name": "Saldo Atual",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/caixa/saldo-atual?barbeariaId={{barbeariaId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["caixa", "saldo-atual"],
+              "query": [{ "key": "barbeariaId", "value": "{{barbeariaId}}" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "9. 🛒 Vendas",
+      "item": [
+        {
+          "name": "Criar Venda",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/vendas", "host": ["{{baseUrl}}"], "path": ["vendas"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"barbeariaId\": \"{{barbeariaId}}\",\n  \"clienteId\": \"{{clienteId}}\",\n  \"barbeiroId\": \"{{barbeiroId}}\",\n  \"itens\": [\n    {\n      \"servicoId\": \"{{servicoId}}\",\n      \"quantidade\": 1,\n      \"precoUnit\": 35.00\n    }\n  ]\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const data = pm.response.json();",
+                  "if (data && data.id) {",
+                  "  pm.collectionVariables.set('vendaId', data.id);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Listar Vendas",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/vendas?barbeariaId={{barbeariaId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["vendas"],
+              "query": [{ "key": "barbeariaId", "value": "{{barbeariaId}}" }]
+            }
+          }
+        },
+        {
+          "name": "Obter Venda",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/vendas/{{vendaId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["vendas", "{{vendaId}}"]
+            }
+          }
+        },
+        {
+          "name": "Adicionar Pagamento",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/vendas/{{vendaId}}/pagamentos",
+              "host": ["{{baseUrl}}"],
+              "path": ["vendas", "{{vendaId}}", "pagamentos"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"valor\": 35.00,\n  \"metodo\": \"dinheiro\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "10. 📊 Relatórios e KPIs",
+      "item": [
+        {
+          "name": "KPIs Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/kpis/dashboard?barbeariaId={{barbeariaId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["kpis", "dashboard"],
+              "query": [{ "key": "barbeariaId", "value": "{{barbeariaId}}" }]
+            }
+          }
+        },
+        {
+          "name": "Relatório de Vendas",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/vendas/relatorio/{{barbeariaId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["vendas", "relatorio", "{{barbeariaId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "11. 🔧 Operações Avançadas",
+      "item": [
+        {
+          "name": "Fechar Sessão de Caixa",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/caixa/sessoes/{{sessaoId}}/fechar",
+              "host": ["{{baseUrl}}"],
+              "path": ["caixa", "sessoes", "{{sessaoId}}", "fechar"]
+            }
+          }
+        },
+        {
+          "name": "Registrar Lançamento Manual",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/caixa/lancamentos", "host": ["{{baseUrl}}"], "path": ["caixa", "lancamentos"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"caixaSessaoId\": \"{{sessaoId}}\",\n  \"barbeariaId\": \"{{barbeariaId}}\",\n  \"tipo\": \"SAIDA\",\n  \"origem\": \"DESPESA\",\n  \"metodo\": \"dinheiro\",\n  \"valor\": 50.00,\n  \"descricao\": \"Compra de material\"\n}"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
