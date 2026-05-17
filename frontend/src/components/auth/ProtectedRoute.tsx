@@ -8,18 +8,25 @@ export const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ childr
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
 
+  // 🔥 BYPASS DE DEMO
+  const isDemo = true;
+
   useEffect(() => {
     setMounted(true);
   }, []);
 
   useEffect(() => {
+    if (isDemo) {
+      localStorage.setItem('accessToken', 'demo');
+      return; // não redireciona nunca na demo
+    }
+
     if (!token) {
       router.replace('/');
     }
   }, [token, router]);
 
-  // Evita erro de hidratação garantindo que o placeholder seja igual
-  // no servidor e no primeiro render no cliente.
+  // evita render antes de montar
   if (!mounted) {
     return (
       <Center minH="100vh">
@@ -28,7 +35,8 @@ export const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ childr
     );
   }
 
-  if (!token) {
+  // 🔥 na demo nunca bloqueia
+  if (!isDemo && !token) {
     return (
       <Center minH="100vh">
         <Spinner />
