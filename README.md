@@ -1,16 +1,14 @@
 # 💈 ERP Aesthetic Barber SaaS
 
-==================================================
-
-🧠 SISTEMA ENTERPRISE SAAS DE GESTÃO PARA BARBEARIAS
+🧠 SISTEMA ENTERPRISE SAAS DE GESTÃO PARA BARBEARIAS  
 Solução completa com arquitetura moderna, escalável e orientada a eventos.
 
 ==================================================
 
-🔗 LIVE DEMO:
+🔗 LIVE DEMO  
 https://erp-aesthetic-empresarial-git-demo-mailogdestas-projects.vercel.app?_vercel_share=WEQV7Ve9qlfHY3SPdJLk4LRbWfCg5HBF
 
-📦 REPOSITÓRIO:
+📦 REPOSITÓRIO  
 https://github.com/Mailogdestas/erpempresarial
 
 ==================================================
@@ -19,31 +17,51 @@ https://github.com/Mailogdestas/erpempresarial
 
 🔓 Versão demo disponível (sem necessidade de login)
 
-ACESSO:
-
-Email: demo@demo.com
-Senha: demo123
+ACESSO:  
+Email: demo@demo.com  
+Senha: demo123  
 
 ==================================================
 
-📸 SCREENSHOTS DO SISTEMA
+🎬 VISÃO GERAL VISUAL
 
-(Coloque suas imagens na pasta: /docs/screenshots/)
+## 📊 Dashboard principal
 
-Dashboard:
-./docs/screenshots/dashboard.png
+<img src="./DOCS/screenshots/dashboard.png" width="900"/>
 
-Agenda:
-./docs/screenshots/agenda.png
+Visão geral financeira, agendamentos e indicadores em tempo real.
 
-Caixa:
-./docs/screenshots/caixa.png
+---
 
-Clientes:
-./docs/screenshots/clientes.png
+## 📅 Agenda
 
-Relatórios:
-./docs/screenshots/relatorios.png
+<img src="./DOCS/screenshots/agenda.png" width="900"/>
+
+Gestão de horários, agendamentos e controle de atendimento dos barbeiros.
+
+---
+
+## 💰 Caixa
+
+<img src="./DOCS/screenshots/caixa.png" width="900"/>
+
+Controle financeiro completo com entradas, saídas e fluxo diário.
+
+---
+
+## 👥 Clientes
+
+<img src="./DOCS/screenshots/clientes.png" width="900"/>
+
+CRM para gerenciamento de clientes e histórico de atendimentos.
+
+---
+
+## 📊 Relatórios
+
+<img src="./DOCS/screenshots/relatorios.png" width="900"/>
+
+Dashboards analíticos com KPIs e relatórios de performance.
 
 ==================================================
 
@@ -65,27 +83,27 @@ ERP completo para gestão de barbearias com foco em:
 - Agendamentos inteligentes
 - CRM de clientes
 - Histórico de atendimentos
-- Gestão de barbeiros
+- Gestão de barbeiros e serviços
 
 💰 FINANCEIRO
-- Controle de caixa
-- Gestão de vendas (PDV)
-- Controle de despesas
-- Relatórios financeiros
+- Controle de caixa em tempo real
+- PDV (ponto de venda)
+- Controle de despesas e receitas
+- Relatórios financeiros automáticos
 
 📦 ESTOQUE
 - Controle de inventário
-- Baixa automática por venda
+- Baixa automática por vendas
 - Alertas de estoque baixo
 
-📊 ANALYTICS
+📊 ANALYTICS E RELATÓRIOS
 - Dashboards em tempo real
 - KPIs de performance
-- Relatórios automáticos
+- Relatórios automáticos e inteligentes
 
 ==================================================
 
-🧠 ARQUITETURA
+🧠 ARQUITETURA TÉCNICA
 
 Frontend:
 - React
@@ -97,26 +115,26 @@ Frontend:
 
 Backend:
 - NestJS
-- Prisma
+- Prisma ORM
 - PostgreSQL
-- JWT
-- Event-driven architecture
+- JWT Authentication
+- Arquitetura orientada a eventos
 
 ==================================================
 
-🏗️ ARQUITETURA DO SISTEMA
+🏗️ FLUXO DO SISTEMA
 
 Frontend (React)
         ↓
-Backend (NestJS API)
+Backend API (NestJS)
         ↓
-PostgreSQL + Redis
+Banco de Dados (PostgreSQL + Redis)
         ↓
-Event-Driven System
+Event-Driven Architecture
 
 ==================================================
 
-🔐 AUTENTICAÇÃO
+🔐 AUTENTICAÇÃO E SEGURANÇA
 
 - JWT Authentication
 - RBAC (Admin / Manager / Barber)
@@ -169,14 +187,14 @@ backend/
 
 🧪 DESTAQUES TÉCNICOS
 
-- Arquitetura orientada a eventos
+- Arquitetura orientada a eventos (Event-Driven)
 - Separação por domínios (DDD básico)
-- Sistema multi-tenant SaaS
-- Fluxo automatizado de vendas
-- Controle financeiro completo
-- Escalabilidade real de produção
+- Sistema SaaS multi-tenant
+- Automação completa de fluxo de vendas
+- Controle financeiro avançado
+- Escalabilidade real para produção
 
 ==================================================
 
-💈 ERP Aesthetic SaaS
+💈 ERP AESTHETIC SAAS  
 Sistema profissional de gestão para barbearias
